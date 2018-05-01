@@ -1,0 +1,3 @@
+[submodule "marketplace-k8s-app-tools"]
+	path = marketplace-k8s-app-tools
+	url = https://github.com/GoogleCloudPlatform/marketplace-k8s-app-tools.git
