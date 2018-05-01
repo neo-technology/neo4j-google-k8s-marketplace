@@ -1,0 +1,14 @@
+FROM greenwall/gcloud-kubectl-helm:latest
+
+RUN apk --no-cache add git; \
+    apk --no-cache add curl
+
+RUN mkdir /data
+COPY schema.yml /data/schema.yml
+COPY install-neo4j.sh /data/install-neo4j.sh
+RUN chmod +x /data/install-neo4j.sh
+
+RUN cd /data && git clone https://github.com/moxious/charts.git
+
+ENTRYPOINT [ "/data/install-neo4j.sh" ]
+
