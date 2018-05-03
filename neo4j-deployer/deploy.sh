@@ -1,6 +1,6 @@
 #!/bin/sh
 export PATH=$PATH:/data/google-cloud-sdk/bin
-echo "I am the install container for Neo4j on Google K8S Marketplace"
+echo "I am the deploy container for Neo4j on Google K8S Marketplace"
 
 NEO4J_CHART=/data/charts/stable/neo4j
 

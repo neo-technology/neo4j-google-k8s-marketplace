@@ -15,18 +15,21 @@ git submodule sync --recursive
 git submodule update --recursive --init --force
 ```
 
-## Building the Installer Container
+## Building the Deployment Container
 
 ```
-docker build -t gcr.io/neo4j-k8s-marketplace-public/neo4j-installer:latest -f neo4j-installer/Dockerfile .
-gcloud docker -- push gcr.io/neo4j-k8s-marketplace-public/neo4j-installer:latest
+export GCP_PROJECT=neo4j-k8s-marketplace-public
+docker build \
+   -t gcr.io/$GCP_PROJECT/neo4j-deployer:latest \
+   -f neo4j-installer/Dockerfile .
+gcloud docker -- push gcr.io/$GCP_PROJECT/neo4j-deployer:latest
 ```
 
-## Running the Installer Container
+## Running the Deployer Container
 
 ```
-kubectl run -it --rm neo4j-installer \
-    --image="gcr.io/neo4j-k8s-marketplace-public/neo4j-installer:latest" \
+kubectl run -it --rm neo4j-deployer \
+    --image="gcr.io/neo4j-k8s-marketplace-public/neo4j-deployer:latest" \
     --restart=Never \
     --namespace default \
     --image-pull-policy=Always
