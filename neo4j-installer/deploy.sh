@@ -16,7 +16,10 @@ else
 fi
 
 echo "Chart looks like:"
-ls -l "$NEO4J_CHART"
+ls -l $NEO4J_CHART
+
+echo "Kubectl proxy"
+/bin/kubectl proxy
 
 echo "Helm installing"
 ls -l /bin/helm
