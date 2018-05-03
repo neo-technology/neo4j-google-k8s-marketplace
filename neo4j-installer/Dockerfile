@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python \
     python-yaml \
     wget \
+    git-all \
     && rm -rf /var/lib/apt/lists/*
 
 RUN wget -q -O /bin/kubectl \
@@ -22,18 +23,18 @@ RUN mkdir -p /bin/helm-downloaded \
     && mv /bin/helm-downloaded/linux-amd64/helm /bin/ \
     && rm -rf /bin/helm-downloaded
 
-COPY marketplace/deployer_util/* /bin/
+COPY vendor/marketplace-k8s-app-tools/marketplace/deployer_helm_base/* /bin/
+COPY vendor/marketplace-k8s-app-tools/marketplace/deployer_util/* /bin/
 
 RUN mkdir -p /data/chart
 RUN mkdir -p /data-test/chart
 
 # Neo4j customizations below
-RUN apt-get install -y git && cd /data && 
-COPY schema.yml /data/schema.yml
-COPY deploy.sh /bin/deploy.sh
+WORKDIR /data
 
-RUN cd /data && git clone https://github.com/moxious/charts.git
+RUN git clone https://github.com/moxious/charts.git
+COPY neo4j-installer/schema.yml /data/schema.yml
+COPY neo4j-installer/deploy.sh /bin/deploy.sh
 
 # TBD: https://github.com/baptiste-bonnaudet/gcloud-kubectl/blob/master/run.sh
-
 ENTRYPOINT ["/bin/bash", "/bin/deploy.sh"]
