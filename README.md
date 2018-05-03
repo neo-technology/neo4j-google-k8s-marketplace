@@ -27,12 +27,13 @@ gcloud docker -- push gcr.io/$GCP_PROJECT/neo4j-deployer:latest
 
 ## Running the Deployer Container
 
+Using the marketplace-k8s-app-tools script to launch the deployment container mimics how google's
+k8s marketplace will do it live.
+
 ```
-kubectl run -it --rm neo4j-deployer \
-    --image="gcr.io/neo4j-k8s-marketplace-public/neo4j-deployer:latest" \
-    --restart=Never \
-    --namespace default \
-    --image-pull-policy=Always
+DEPLOYER_IMAGE=gcr.io/neo4j-k8s-marketplace-public/neo4j-deployer:latest
+vendor/marketplace-k8s-app-tools/scripts/start.sh --deployer=$DEPLOYER­_IMAGE \
+   --parameters='{"NAMESPACE": "default", "APP_INSTANCE_NAME": "mygraph"}'
 ```
 
 # User Guide
