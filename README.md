@@ -21,7 +21,7 @@ git submodule update --recursive --init --force
 export GCP_PROJECT=neo4j-k8s-marketplace-public
 docker build \
    -t gcr.io/$GCP_PROJECT/neo4j-deployer:latest \
-   -f neo4j-installer/Dockerfile .
+   -f neo4j-deployer/Dockerfile .
 gcloud docker -- push gcr.io/$GCP_PROJECT/neo4j-deployer:latest
 ```
 
@@ -32,8 +32,9 @@ k8s marketplace will do it live.
 
 ```
 DEPLOYER_IMAGE=gcr.io/neo4j-k8s-marketplace-public/neo4j-deployer:latest
-vendor/marketplace-k8s-app-tools/scripts/start.sh --deployer=$DEPLOYER­_IMAGE \
-   --parameters='{"NAMESPACE": "default", "APP_INSTANCE_NAME": "mygraph"}'
+vendor/marketplace-k8s-app-tools/scripts/start.sh \
+   --deployer=$DEPLOYER_IMAGE \
+   --parameters='{"NAMESPACE": "default", "APP_INSTANCE_NAME": "myneo4j"}'
 ```
 
 # User Guide

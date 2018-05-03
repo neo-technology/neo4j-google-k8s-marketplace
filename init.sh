@@ -21,8 +21,10 @@ gcloud container clusters get-credentials $CLUSTER \
 kubectl create clusterrolebinding cluster-admin-binding \
   --clusterrole cluster-admin --user $(gcloud config get-value account)
 
-kubectl proxy
+exec nohup kubectl proxy &
 helm init
+
+kubectl apply -f vendor/marketplace-k8s-app-tools/crd/app-crd.yaml
 
 # OLD
 # kubectl create serviceaccount --namespace kube-system tiller

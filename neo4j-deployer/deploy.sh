@@ -8,33 +8,49 @@ if [ -z ${NEO4J_VERSION} ]; then
   NEO4J_VERSION=3.3.5-enterprise
 fi
 
-if [ -z ${NAME} ] ; then
-  echo "NAME was not set, defaulting to deploy mygraph"
-  NAME=mygraph
+if [ -z ${APP_INSTANCE_NAME} ] ; then
+  echo "APP_INSTANCE_NAME was not set, defaulting to deploy mygraph"
+  APP_INSTANCE_NAME=mygraph
 else 
-  echo "Deploying graph named $NAME"
+  echo "Deploying graph named $APP_INSTANCE_NAME"
 fi
 
-echo "Chart looks like:"
-ls -l $NEO4J_CHART
+if [ -z ${READ_REPLICAS} ] ; then
+  READ_REPLICAS=0
+fi
+
+if [ -z ${CORE_NODES} ] ; then
+  CORE_NODES=3
+fi
+
+if [ -z ${ACCEPT_LICENSE} ] ; then
+  ACCEPT_LICENSE=yes
+fi
+
+if [ -z ${NEO4J_PASSWORD} ] ; then
+  NEO4J_PASSWORD='mySecretPassword'
+fi
+
+echo "Here we go, we're deploying:"
+head -n 5 $NEO4J_CHART/Chart.yaml
 
 echo "Kubectl proxy"
-/bin/kubectl proxy
+exec /bin/kubectl proxy &
 
 echo "Helm installing"
 ls -l /bin/helm
+/bin/helm install
 
-/bin/helm install --name "$NAME" $NEO4J_CHART \
-   --set neo4jPassword=mySecretPassword \
+echo "Installing Neo4j chart..."
+/bin/helm install --name "$APP_INSTANCE_NAME" $NEO4J_CHART \
+   --set neo4jPassword="$NEO4J_PASSWORD" \
    --set imageTag=$NEO4J_VERSION \
    --set authEnabled=true \
-   --set core.numberOfServers=3 \
-   --set readReplica.numberOfServers=0 \
-   --set acceptNeo4jLicense=yes
+   --set core.numberOfServers=$CORE_NODES \
+   --set readReplica.numberOfServers=$READ_REPLICAS \
+   --set acceptNeo4jLicense=$ACCEPT_LICENSE
 
-echo "Helm installed.  Waiting for it to come alive"
-sleep 10
-echo "Calling it done"
+echo "Deployed"
 
 if [ -z ${TEST_MODE} ]; then
   echo "No testing"

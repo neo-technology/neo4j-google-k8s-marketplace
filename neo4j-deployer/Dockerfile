@@ -33,8 +33,11 @@ RUN mkdir -p /data-test/chart
 WORKDIR /data
 
 RUN git clone https://github.com/moxious/charts.git
-COPY neo4j-installer/schema.yml /data/schema.yml
-COPY neo4j-installer/deploy.sh /bin/deploy.sh
+
+WORKDIR /bin
+COPY neo4j-deployer/schema.yml /data/schema.yml
+COPY neo4j-deployer/deploy.sh /bin/deploy.sh
+RUN chmod +x /bin/deploy.sh
 
 # TBD: https://github.com/baptiste-bonnaudet/gcloud-kubectl/blob/master/run.sh
 ENTRYPOINT ["/bin/bash", "/bin/deploy.sh"]
