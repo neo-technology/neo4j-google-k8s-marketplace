@@ -12,7 +12,7 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 */}}
 {{- define "neo4j.fullname" -}}
 {{- $name := default .Chart.Name .Values.nameOverride -}}
-{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- printf "%s-%s" .Values.APP_INSTANCE_NAME $name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
@@ -21,7 +21,7 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 */}}
 {{- define "neo4j.core.fullname" -}}
 {{- $name := default .Chart.Name .Values.nameOverride -}}
-{{- printf "%s-%s-core" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- printf "%s-%s-core" .Values.APP_INSTANCE_NAME $name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
@@ -30,7 +30,7 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 */}}
 {{- define "neo4j.replica.fullname" -}}
 {{- $name := default .Chart.Name .Values.nameOverride -}}
-{{- printf "%s-%s-replica" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- printf "%s-%s-replica" .Values.APP_INSTANCE_NAME $name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
@@ -39,5 +39,5 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 */}}
 {{- define "neo4j.secrets.fullname" -}}
 {{- $name := default .Chart.Name .Values.nameOverride -}}
-{{- printf "%s-%s-secrets" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- printf "%s-%s-secrets" .Values.APP_INSTANCE_NAME $name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}

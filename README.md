@@ -18,11 +18,39 @@ git submodule update --recursive --init --force
 ## Building the Deployment Container
 
 ```
-export PROJECT=neo4j-k8s-marketplace-public
-docker build \
-   -t gcr.io/$PROJECT/neo4j-deployer:latest \
-   -f neo4j-deployer/Dockerfile .
-gcloud docker -- push gcr.io/$PROJECT/neo4j-deployer:latest
+make app/build
+```
+
+## Local Testing
+
+These instructions mimic what the deployment container does.
+
+### Helm Expansion
+
+helm template chart/ \
+   --set APP_INSTANCE_NAME=myGraph \
+   --set neo4jPassword=mySecretPassword \
+   --set authEnabled=true \
+   --set core.numberOfServers=3 \
+   --set readReplica.numberOfServers=0 \
+   --set acceptNeo4jLicense=yes > expanded.yaml
+
+### Applying to Cluster
+
+```kubectl apply -f expanded.yaml```
+
+### Connecting to an Instance
+
+```
+PASSWORD=mySecretPassword
+APP_INSTANCE_NAME=testing
+kubectl run -it --rm cypher-shell \
+   --image=gcr.io/neo4j-k8s-marketplace-public/neo4j:3.3.5-enterprise \
+   --restart=Never \
+   --namespace=default \
+   --command -- ./bin/cypher-shell -u neo4j \
+   -p $PASSWORD \
+   -a $APP_INSTANCE_NAME-neo4j.default.svc.cluster.local "call dbms.cluster.overview()"
 ```
 
 ## Running the Deployer Container
@@ -34,7 +62,7 @@ k8s marketplace will do it live.
 DEPLOYER_IMAGE=gcr.io/neo4j-k8s-marketplace-public/neo4j-deployer:latest
 vendor/marketplace-k8s-app-tools/scripts/start.sh \
    --deployer=$DEPLOYER_IMAGE \
-   --parameters='{"NAMESPACE": "default", "APP_INSTANCE_NAME": "myneo4j"}'
+   --parameters='{"NAMESPACE": "default", "APP_INSTANCE_NAME": "myneo4j", "core.numberOfServers":"4", "image": "gcr.io/neo4j-k8s-marketplace-public/neo4j:3.3.5-enterprise"}'
 ```
 
 # User Guide

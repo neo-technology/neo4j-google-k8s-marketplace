@@ -1,0 +1,48 @@
+properties:
+  APP_INSTANCE_NAME:
+    type: string
+    x-google-marketplace:
+      type: NAME
+  NAMESPACE:
+    type: string
+    x-google-marketplace:
+      type: NAMESPACE
+  reportingSecret:
+    type: string
+    x-google-marketplace:
+      type: REPORTING_SECRET  
+  image:
+    type: string
+    default: gcr.io/neo4j-k8s-marketplace-public/neo4j:3.3.5-enterprise
+    x-google-marketplace:
+      type: IMAGE
+  ubbAgentImage:
+    type: string
+    default: gcr.io/neo4j-k8s-marketplace-public/ubbagent:neo4j
+    x-google-marketplace:
+      type: IMAGE
+  core.numberOfServers:
+    title: Server replicas
+    type: int
+    default: 3
+    minimum: 3
+  readReplica.numberOfServers:
+    title: Read Replicas
+    type: int
+    default: 0
+    minimum: 0
+  authEnabled:
+    title: Enable Authorization
+    type: boolean
+    default: true
+  acceptNeo4jLicense:
+    title: Accept Neo4j License yes/no
+    type: string
+    default: yes
+  
+required:
+- APP_INSTANCE_NAME
+- NAMESPACE
+- image
+- reportingSecret
+- core.numberOfServers

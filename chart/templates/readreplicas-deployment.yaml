@@ -4,7 +4,7 @@ metadata:
   name: "{{ template "neo4j.replica.fullname" . }}"
   labels:
     heritage: {{ .Release.Service | quote }}
-    release: {{ .Release.Name | quote }}
+    release: {{ .Values.APP_INSTANCE_NAME | quote }}
     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
     app: {{ template "neo4j.name" . }}
     component: replica
@@ -14,7 +14,7 @@ spec:
     metadata:
       labels:
         app: {{ template "neo4j.name" . }}
-        release: {{ .Release.Name | quote }}
+        release: {{ .Values.APP_INSTANCE_NAME | quote }}
         component: replica
     spec:
       containers:

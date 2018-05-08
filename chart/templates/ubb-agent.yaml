@@ -3,18 +3,17 @@ kind: ReplicaSet
 metadata:
   name: "{{ template "neo4j.core.fullname" . }}-ubbagent"
 spec:
-  serviceName: "{{ template "neo4j.fullname" . }}-ubbagent-svc"
   replicas: 1
   selector:
     matchLabels:
-      release: {{ .Release.Name | quote }}
+      release: {{ .Values.APP_INSTANCE_NAME | quote }}
       app: {{ template "neo4j.name" . }}
       component: ubbagent
   template:
     metadata:
       labels:
         heritage: {{ .Release.Service | quote }}
-        release: {{ .Release.Name | quote }}
+        release: {{ .Values.APP_INSTANCE_NAME | quote }}
         chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
         app: {{ template "neo4j.name" . }}
         component: ubbagent
