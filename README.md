@@ -18,11 +18,11 @@ git submodule update --recursive --init --force
 ## Building the Deployment Container
 
 ```
-export GCP_PROJECT=neo4j-k8s-marketplace-public
+export PROJECT=neo4j-k8s-marketplace-public
 docker build \
-   -t gcr.io/$GCP_PROJECT/neo4j-deployer:latest \
+   -t gcr.io/$PROJECT/neo4j-deployer:latest \
    -f neo4j-deployer/Dockerfile .
-gcloud docker -- push gcr.io/$GCP_PROJECT/neo4j-deployer:latest
+gcloud docker -- push gcr.io/$PROJECT/neo4j-deployer:latest
 ```
 
 ## Running the Deployer Container

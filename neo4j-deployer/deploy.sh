@@ -36,10 +36,10 @@ head -n 5 $NEO4J_CHART/Chart.yaml
 
 echo "Kubectl proxy"
 exec /bin/kubectl proxy &
-
 echo "Helm installing"
 ls -l /bin/helm
-/bin/helm install
+
+/bin/helm init
 
 echo "Installing Neo4j chart..."
 /bin/helm install --name "$APP_INSTANCE_NAME" $NEO4J_CHART \
@@ -53,7 +53,9 @@ echo "Installing Neo4j chart..."
 echo "Deployed"
 
 if [ -z ${TEST_MODE} ]; then
-  echo "No testing"
+  echo "Beginning testing"
+  cd "$NEO4J_CHART" && /bin/helm test
+  echo "Testing complete"
 else 
   echo "Test mode $TEST_MODE"
 fi
