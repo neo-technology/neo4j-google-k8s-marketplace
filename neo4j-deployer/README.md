@@ -1,4 +1,7 @@
 # Deployment Container
 
-This container deploys an instance of the neo4j helm chart to a k8s cluster on google.
+THIS IS DEPRECATED AND NO LONGER USED, replaced by the standard project format provided by google
+found in the deployer directory.
+
+Once that's working this whole directory will be deleted.
 
