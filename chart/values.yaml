@@ -11,6 +11,10 @@ imageTag: "3.3.5-enterprise"
 ubbAgentImage: "gcr.io/neo4j-k8s-marketplace-public/ubbagent:neo4j"
 imagePullPolicy: "IfNotPresent"
 # imagePullSecret: registry-secret
+acceptLicenseAgreement: "no"
+podDisruptionBudget: {}
+  # minAvailable: 2
+  # maxUnavailable: 1
 
 # Use password authentication
 authEnabled: true

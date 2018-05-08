@@ -2,3 +2,4 @@
 build/
 nohup.out
 expanded.yaml
+chart/templates/tests
