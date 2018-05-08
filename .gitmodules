@@ -1,3 +1,6 @@
 [submodule "marketplace-k8s-app-tools"]
 	path = vendor/marketplace-k8s-app-tools
 	url = https://github.com/GoogleCloudPlatform/marketplace-k8s-app-tools.git
+[submodule "vendor/ubbagent"]
+	path = vendor/ubbagent
+	url = https://github.com/GoogleCloudPlatform/ubbagent
