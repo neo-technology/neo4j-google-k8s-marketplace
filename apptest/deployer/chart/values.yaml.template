@@ -1,0 +1,9 @@
+tester:
+  # TODO(ruela) Find alternative for env variable substitution, 
+  # since we will only expand variables from the ConfigMap in the future
+  image: $APP_TESTER_IMAGE
+  duration: "10"
+  exitcode: "0"
+
+service:
+  port: 8080

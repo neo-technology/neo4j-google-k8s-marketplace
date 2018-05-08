@@ -1,0 +1,19 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: tester
+  labels:
+    app.kubernetes.io/name: "{{ .Release.Name }}"
+spec:
+  template:
+    spec:
+      containers:
+      - name: tester
+        image: "{{ .Values.tester.image }}"
+        env:
+        - name: EXITCODE
+          value: "{{ .Values.tester.exitcode }}"
+        - name: DURATION
+          value: "{{ .Values.tester.duration }}"
+      restartPolicy: Never
+  backoffLimit: 0

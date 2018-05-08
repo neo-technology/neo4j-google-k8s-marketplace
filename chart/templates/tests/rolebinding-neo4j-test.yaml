@@ -1,0 +1,13 @@
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: neo4j-test-binding
+  namespace: {{ .Release.Namespace }}
+subjects:
+- kind: ServiceAccount
+  name: neo4j-test
+  namespace: {{ .Release.Namespace }}
+roleRef:
+  kind: Role
+  name: neo4j-test
+  apiGroup: rbac.authorization.k8s.io

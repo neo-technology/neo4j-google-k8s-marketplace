@@ -1,0 +1,42 @@
+apiVersion: "apps/v1beta2"
+kind: ReplicaSet
+metadata:
+  name: "{{ template "neo4j.core.fullname" . }}-ubbagent"
+spec:
+  serviceName: "{{ template "neo4j.fullname" . }}-ubbagent-svc"
+  replicas: 1
+  selector:
+    matchLabels:
+      release: {{ .Release.Name | quote }}
+      app: {{ template "neo4j.name" . }}
+      component: ubbagent
+  template:
+    metadata:
+      labels:
+        heritage: {{ .Release.Service | quote }}
+        release: {{ .Release.Name | quote }}
+        chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+        app: {{ template "neo4j.name" . }}
+        component: ubbagent
+    spec:
+      volumes:
+      - name: configuration
+        configMap:
+          name: {{ template "neo4j.fullname" . }}-ubc
+      containers:
+      - name: ubbagent
+        image: "{{ .Values.ubbAgentImage }}"
+        imagePullPolicy: "{{ .Values.imagePullPolicy }}"
+        env:
+          - name: AGENT_CONFIG_FILE
+            value: "/configuration/ubbagent-config.yaml"
+          - name: AGENT_LOCAL_PORT
+            value: "3456"
+        ports:
+        - containerPort: 3456
+          name: ubb-reporting
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: configuration
+          mountPath: /configuration
