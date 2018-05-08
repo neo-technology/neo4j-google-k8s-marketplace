@@ -22,7 +22,7 @@ properties:
     x-google-marketplace:
       type: IMAGE
   core.numberOfServers:
-    title: Server replicas
+    title: Server replicas to use
     type: int
     default: 3
     minimum: 3
@@ -33,9 +33,9 @@ properties:
     minimum: 0
   authEnabled:
     title: Enable Authorization
-    type: boolean
+    type: string
     default: true
-  acceptNeo4jLicense:
+  acceptLicenseAgreement:
     title: Accept Neo4j License yes/no
     type: string
     default: yes
@@ -46,3 +46,4 @@ required:
 - image
 - reportingSecret
 - core.numberOfServers
+- acceptLicenseAgreement

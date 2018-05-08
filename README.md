@@ -28,12 +28,13 @@ These instructions mimic what the deployment container does.
 ### Helm Expansion
 
 helm template chart/ \
+   --set NAMESPACE=default \
    --set APP_INSTANCE_NAME=myGraph \
    --set neo4jPassword=mySecretPassword \
    --set authEnabled=true \
    --set core.numberOfServers=3 \
    --set readReplica.numberOfServers=0 \
-   --set acceptNeo4jLicense=yes > expanded.yaml
+   --set acceptLicenseAgreement=yes > expanded.yaml
 
 ### Applying to Cluster
 
@@ -62,7 +63,7 @@ k8s marketplace will do it live.
 DEPLOYER_IMAGE=gcr.io/neo4j-k8s-marketplace-public/neo4j-deployer:latest
 vendor/marketplace-k8s-app-tools/scripts/start.sh \
    --deployer=$DEPLOYER_IMAGE \
-   --parameters='{"NAMESPACE": "default", "APP_INSTANCE_NAME": "myneo4j", "core.numberOfServers":"4", "image": "gcr.io/neo4j-k8s-marketplace-public/neo4j:3.3.5-enterprise"}'
+   --parameters='{"acceptLicenseAgreement":"yes", "NAMESPACE": "default", "APP_INSTANCE_NAME": "myneo4j", "core.numberOfServers":"4", "reportingSecret": "XYZ", "image": "gcr.io/neo4j-k8s-marketplace-public/neo4j:3.3.5-enterprise"}'
 ```
 
 # User Guide
