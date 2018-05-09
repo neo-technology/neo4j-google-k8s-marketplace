@@ -29,29 +29,44 @@ These instructions mimic what the deployment container does.
 
 helm template chart/ \
    --set NAMESPACE=default \
+   --set reportingSecret=XYZ \
+   --set image=gcr.io/neo4j-k8s-marketplace-public/neo4j:3.3.5-enterprise \
    --set APP_INSTANCE_NAME=mygraph \
    --set neo4jPassword=mySecretPassword \
    --set authEnabled=true \
    --set coreServers=3 \
-   --set readReplicaServers=0 \
    --set acceptLicenseAgreement=yes > expanded.yaml
 
 ### Applying to Cluster
 
 ```kubectl apply -f expanded.yaml```
 
+### Discovering the Password to your Cluster
+
+It's stored in a secret, base64 encoded.  With proper access you can unmask the password
+like this:
+
+```
+kubectl get secrets $APP_INSTANCE_NAME-neo4j-secrets -o yaml | grep neo4j-password: | sed 's/neo4j-password: *//' | base64 -D
+```
+
 ### Connecting to an Instance
 
 ```
-export PASSWORD=mySecretPassword
 export APP_INSTANCE_NAME=mygraph
+
 kubectl run -it --rm cypher-shell \
    --image=gcr.io/neo4j-k8s-marketplace-public/neo4j:3.3.5-enterprise \
    --restart=Never \
    --namespace=default \
    --command -- ./bin/cypher-shell -u neo4j \
-   -p "$PASSWORD" \
+   -p "$(kubectl get secrets $APP_INSTANCE_NAME-neo4j-secrets -o yaml | grep neo4j-password: | sed 's/neo4j-password: *//' | base64 -D)" \
    -a $APP_INSTANCE_NAME-neo4j.default.svc.cluster.local "call dbms.cluster.overview()"
+```
+
+### Getting Logs
+```
+kubectl logs -l "app=neo4j,component=core"
 ```
 
 ## Running the Deployer Container
@@ -65,6 +80,8 @@ vendor/marketplace-k8s-app-tools/scripts/start.sh \
    --deployer=$DEPLOYER_IMAGE \
    --parameters='{"NAMESPACE": "default", "APP_INSTANCE_NAME": "myneo4jtest", "coreServers":"4", "reportingSecret": "XYZ", "image": "gcr.io/neo4j-k8s-marketplace-public/neo4j:3.3.5-enterprise"}'
 ```
+
+Once deployed, the instructions above on getting logs and running cypher-shell still apply.
 
 # User Guide
 

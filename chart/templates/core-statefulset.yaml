@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
       - name: {{ template "neo4j.fullname" . }}
-        image: "{{ .Values.image }}:{{ .Values.imageTag }}"
+        image: "{{ .Values.image }}"
         imagePullPolicy: "{{ .Values.imagePullPolicy }}"
         env:
           - name: NEO4J_ACCEPT_LICENSE_AGREEMENT

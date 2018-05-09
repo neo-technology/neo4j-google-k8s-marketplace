@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: neo4j
-        image: "{{ .Values.image }}:{{ .Values.imageTag }}"
+        image: "{{ .Values.image }}"
         imagePullPolicy: "{{ .Values.imagePullPolicy }}"
         env:
           - name: NEO4J_dbms_mode

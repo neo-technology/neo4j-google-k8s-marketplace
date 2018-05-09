@@ -1,9 +1,11 @@
+{{ required "A valid foo APP_INSTANCE_NAME is required" .Values.APP_INSTANCE_NAME }}
+
 {{/* vim: set filetype=mustache: */}}
 {{/*
 Expand the name of the chart.
 */}}
 {{- define "neo4j.name" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | lower | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
@@ -12,7 +14,7 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 */}}
 {{- define "neo4j.fullname" -}}
 {{- $name := default .Chart.Name .Values.nameOverride -}}
-{{- printf "%s-%s" .Values.APP_INSTANCE_NAME $name | trunc 63 | trimSuffix "-" -}}
+{{- printf "%s-%s" .Values.APP_INSTANCE_NAME $name | trunc 63 | lower | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
@@ -21,7 +23,7 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 */}}
 {{- define "neo4j.core.fullname" -}}
 {{- $name := default .Chart.Name .Values.nameOverride -}}
-{{- printf "%s-%s-core" .Values.APP_INSTANCE_NAME $name | trunc 63 | trimSuffix "-" -}}
+{{- printf "%s-%s-core" .Values.APP_INSTANCE_NAME $name | trunc 63 | lower | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
@@ -30,7 +32,7 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 */}}
 {{- define "neo4j.replica.fullname" -}}
 {{- $name := default .Chart.Name .Values.nameOverride -}}
-{{- printf "%s-%s-replica" .Values.APP_INSTANCE_NAME $name | trunc 63 | trimSuffix "-" -}}
+{{- printf "%s-%s-replica" .Values.APP_INSTANCE_NAME $name | trunc 63 | lower | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*

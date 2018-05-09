@@ -4,6 +4,7 @@
 # name: value
 
 name: "neo4j"
+APP_INSTANCE_NAME: "neo4j"
 
 # Specs for the Neo4j docker image
 image: "gcr.io/neo4j-k8s-marketplace-public/neo4j"
