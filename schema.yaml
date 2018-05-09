@@ -21,12 +21,12 @@ properties:
     default: gcr.io/neo4j-k8s-marketplace-public/ubbagent:neo4j
     x-google-marketplace:
       type: IMAGE
-  core.numberOfServers:
+  coreServers:
     title: Server replicas to use
     type: int
     default: 3
     minimum: 3
-  readReplica.numberOfServers:
+  readReplicaServers:
     title: Read Replicas
     type: int
     default: 0
@@ -38,7 +38,7 @@ properties:
   acceptLicenseAgreement:
     title: Accept Neo4j License yes/no
     type: string
-    default: yes
+    default: "yes"
   
 required:
 - APP_INSTANCE_NAME

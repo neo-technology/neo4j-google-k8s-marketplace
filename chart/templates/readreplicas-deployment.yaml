@@ -9,7 +9,7 @@ metadata:
     app: {{ template "neo4j.name" . }}
     component: replica
 spec:
-  replicas: {{ .Values.readReplica.numberOfServers }}
+  replicas: {{ .Values.readReplicaServers }}
   template:
     metadata:
       labels:
@@ -39,8 +39,8 @@ spec:
                 name: {{ template "neo4j.secrets.fullname" . }}
                 key: neo4j-password
           {{- end }}
-{{- if .Values.readReplica.extraVars }}
-{{ toYaml .Values.readReplica.extraVars | indent 10 }}
+{{- if .Values.readReplicaExtraVars }}
+{{ toYaml .Values.readReplicaExtraVars | indent 10 }}
 {{- end }}
         command:
           - "/bin/bash"
@@ -68,12 +68,12 @@ spec:
           mountPath: /plugins
         securityContext:
           privileged: true
-{{- if .Values.core.sidecarContainers }}
-{{ toYaml .Values.core.sidecarContainers | indent 6 }}
+{{- if .Values.sidecarContainers }}
+{{ toYaml .Values.sidecarContainers | indent 6 }}
 {{- end }}
-{{- if .Values.readReplica.initContainers }}
+{{- if .Values.readReplicaInitContainers }}
       initContainers:
-{{ toYaml .Values.readReplica.initContainers | indent 6 }}
+{{ toYaml .Values.readReplicaInitContainers | indent 6 }}
 {{- end }}
       volumes:
         - name: plugins

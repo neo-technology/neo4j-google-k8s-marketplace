@@ -4,7 +4,7 @@ metadata:
   name: "{{ template "neo4j.core.fullname" . }}"
 spec:
   serviceName: {{ template "neo4j.fullname" . }}
-  replicas: {{ .Values.core.numberOfServers }}
+  replicas: {{ .Values.coreServers }}
   selector:
     matchLabels:
       release: {{ .Values.APP_INSTANCE_NAME | quote }}
@@ -29,7 +29,7 @@ spec:
           - name: NEO4J_dbms_mode
             value: CORE
           - name: NUMBER_OF_CORES
-            value: "{{ .Values.core.numberOfServers }}"
+            value: "{{ .Values.coreServers }}"
           - name: AUTH_ENABLED
             value: "{{ .Values.authEnabled }}"
           - name: NEO4J_causal__clustering_discovery__type
@@ -43,8 +43,8 @@ spec:
                 name: {{ template "neo4j.secrets.fullname" . }}
                 key: neo4j-password
           {{- end }}
-{{- if .Values.core.extraVars }}
-{{ toYaml .Values.core.extraVars | indent 10 }}
+{{- if .Values.coreExtraVars }}
+{{ toYaml .Values.coreExtraVars | indent 10 }}
 {{- end }}
         command:
           - "/bin/bash"
@@ -77,24 +77,24 @@ spec:
           privileged: true
         volumeMounts:
         - name: datadir
-          mountPath: "{{ .Values.core.persistentVolume.mountPath }}"
-          {{- if .Values.core.persistentVolume.subPath }}
-          subPath: {{ .Values.core.persistentVolume.subPath }}
+          mountPath: "{{ .Values.coreVolumeMountPath }}"
+          {{- if .Values.coreVolumeSubPath }}
+          subPath: {{ .Values.coreVolumeSubPath }}
           {{- end }}
         - name: plugins
           mountPath: /plugins
         resources:
 {{ toYaml .Values.resources | indent 10 }}
-{{- if .Values.core.sidecarContainers }}
-{{ toYaml .Values.core.sidecarContainers | indent 6 }}
+{{- if .Values.coreSidecarContainers }}
+{{ toYaml .Values.coreSidecarContainers | indent 6 }}
 {{- end }}
 {{- if .Values.imagePullSecret }}
       imagePullSecrets:
       - name: {{ .Values.imagePullSecret }}
 {{- end -}}
-{{- if .Values.core.initContainers }}
+{{- if .Values.coreInitContainers }}
       initContainers:
-{{ toYaml .Values.core.initContainers | indent 6 }}
+{{ toYaml .Values.coreInitContainers | indent 6 }}
 {{- end }}
       volumes:
         - name: plugins
@@ -103,19 +103,19 @@ spec:
     - metadata:
         name: datadir
         annotations:
-        {{- if .Values.core.persistentVolume.annotations }}
-{{ toYaml .Values.core.persistentVolume.annotations | indent 12 }}
+        {{- if .Values.coreVolumeAnnotations }}
+{{ toYaml .Values.coreVolumeAnnotations | indent 12 }}
         {{- end }}
       spec:
         accessModes:
           - ReadWriteOnce
-      {{- if .Values.core.persistentVolume.storageClass }}
-      {{- if (eq "-" .Values.core.persistentVolume.storageClass) }}
+      {{- if .Values.coreVolumeStorageClass }}
+      {{- if (eq "-" .Values.coreVolumeStorageClass) }}
         storageClassName: ""
       {{- else }}
-        storageClassName: "{{ .Values.core.persistentVolume.storageClass }}"
+        storageClassName: "{{ .Values.coreVolumeStorageClass }}"
       {{- end }}
       {{- end }}
         resources:
           requests:
-            storage: "{{ .Values.core.persistentVolume.size }}"
+            storage: "{{ .Values.coreVolumeSize }}"
