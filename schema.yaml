@@ -34,7 +34,7 @@ properties:
   authEnabled:
     title: Enable Authorization
     type: string
-    default: true
+    default: "true"
   
 required:
 - APP_INSTANCE_NAME
