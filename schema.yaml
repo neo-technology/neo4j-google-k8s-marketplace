@@ -35,15 +35,10 @@ properties:
     title: Enable Authorization
     type: string
     default: true
-  acceptLicenseAgreement:
-    title: Accept Neo4j License yes/no
-    type: string
-    default: "yes"
   
 required:
 - APP_INSTANCE_NAME
 - NAMESPACE
 - image
 - reportingSecret
-- core.numberOfServers
-- acceptLicenseAgreement
+- coreServers

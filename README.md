@@ -63,7 +63,7 @@ k8s marketplace will do it live.
 DEPLOYER_IMAGE=gcr.io/neo4j-k8s-marketplace-public/neo4j-deployer:latest
 vendor/marketplace-k8s-app-tools/scripts/start.sh \
    --deployer=$DEPLOYER_IMAGE \
-   --parameters='{"acceptLicenseAgreement":"yes", "NAMESPACE": "default", "APP_INSTANCE_NAME": "myneo4j", "core.numberOfServers":"4", "reportingSecret": "XYZ", "image": "gcr.io/neo4j-k8s-marketplace-public/neo4j:3.3.5-enterprise"}'
+   --parameters='{"NAMESPACE": "default", "APP_INSTANCE_NAME": "myneo4jtest", "coreServers":"4", "reportingSecret": "XYZ", "image": "gcr.io/neo4j-k8s-marketplace-public/neo4j:3.3.5-enterprise"}'
 ```
 
 # User Guide
