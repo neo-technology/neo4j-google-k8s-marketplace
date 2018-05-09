@@ -39,5 +39,5 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 */}}
 {{- define "neo4j.secrets.fullname" -}}
 {{- $name := default .Chart.Name .Values.nameOverride -}}
-{{- printf "%s-%s-secrets" .Values.APP_INSTANCE_NAME $name | trunc 63 | trimSuffix "-" -}}
+{{- printf "%s-%s-secrets" .Values.APP_INSTANCE_NAME $name | trunc 63 | lower | trimSuffix "-" -}}
 {{- end -}}

@@ -48,6 +48,7 @@ coreSidecarContainers: []
 #       cp apoc-3.2.0.3-all.jar /plugins/
 coreInitContainers: []
 coreVolumeMountPath: /data
+coreVolumeAnnotations: {}
 
 ## Subdirectory of core server data Persistent Volume to mount
 ## Useful if the volume's root directory is not empty

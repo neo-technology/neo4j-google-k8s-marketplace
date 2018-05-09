@@ -29,11 +29,11 @@ These instructions mimic what the deployment container does.
 
 helm template chart/ \
    --set NAMESPACE=default \
-   --set APP_INSTANCE_NAME=myGraph \
+   --set APP_INSTANCE_NAME=mygraph \
    --set neo4jPassword=mySecretPassword \
    --set authEnabled=true \
-   --set core.numberOfServers=3 \
-   --set readReplica.numberOfServers=0 \
+   --set coreServers=3 \
+   --set readReplicaServers=0 \
    --set acceptLicenseAgreement=yes > expanded.yaml
 
 ### Applying to Cluster
@@ -43,14 +43,14 @@ helm template chart/ \
 ### Connecting to an Instance
 
 ```
-PASSWORD=mySecretPassword
-APP_INSTANCE_NAME=testing
+export PASSWORD=mySecretPassword
+export APP_INSTANCE_NAME=mygraph
 kubectl run -it --rm cypher-shell \
    --image=gcr.io/neo4j-k8s-marketplace-public/neo4j:3.3.5-enterprise \
    --restart=Never \
    --namespace=default \
    --command -- ./bin/cypher-shell -u neo4j \
-   -p $PASSWORD \
+   -p "$PASSWORD" \
    -a $APP_INSTANCE_NAME-neo4j.default.svc.cluster.local "call dbms.cluster.overview()"
 ```
 
