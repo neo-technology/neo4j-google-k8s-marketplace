@@ -48,14 +48,14 @@ coreSidecarContainers: []
 #       curl -L https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.2.0.3/apoc-3.2.0.3-all.jar -O
 #       cp apoc-3.2.0.3-all.jar /plugins/
 coreInitContainers: []
-coreVolumeMountPath: /data
-coreVolumeAnnotations: {}
+volumeMountPath: /data
+volumeAnnotations: {}
 
 ## Subdirectory of core server data Persistent Volume to mount
 ## Useful if the volume's root directory is not empty
 ##
 # coreVolumeSubPath: ""
-coreVolumeSize: 10Gi
+volumeSize: 10Gi
 
 ## core server data Persistent Volume Storage Class
 ## If defined, storageClassName: <storageClass>
@@ -63,7 +63,7 @@ coreVolumeSize: 10Gi
 ## If undefined (the default) or set to null, no storageClassName spec is
 ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
 ##   GKE, AWS & OpenStack)
-coreVolumeStorageClass: pd-ssd
+volumeStorageClass: pd-ssd
 
 # Pass extra vars if needed to neo4j docker containers
 # coreExtraVars:
@@ -87,7 +87,7 @@ readReplicaInitContainers: []
 resources:
  requests:
    cpu: 1
-   memory: 16Gi
+   memory: 2Gi
 # limits:
 #   cpu: 100m
 #   memory: 512Mi
