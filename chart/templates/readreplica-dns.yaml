@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "neo4j.fullname" . }}-readreplica
+  labels:
+    heritage: {{ .Release.Service | quote }}
+    release: {{ .Values.APP_INSTANCE_NAME | quote }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    app: {{ template "neo4j.name" . }}
+    component: readreplica
+spec:
+  clusterIP: None
+  ports:
+    - name: http
+      protocol: TCP
+      port: 7474
+      targetPort: 7474
+    - name: https
+      protocol: TCP
+      port: 7473
+      targetPort: 7473
+    - name: bolt
+      protocol: TCP
+      port: 7687
+      targetPort: 7687
+  selector:
+    app: {{ template "neo4j.name" . }}
+    release: {{ .Values.APP_INSTANCE_NAME | quote }}
+    component: readreplica
