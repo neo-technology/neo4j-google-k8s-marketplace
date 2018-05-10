@@ -64,6 +64,11 @@ spec:
         - containerPort: 6000
           name: tx
         volumeMounts:
+        - name: datadir
+          mountPath: "{{ .Values.coreVolumeMountPath }}"
+          {{- if .Values.coreVolumeSubPath }}
+          subPath: {{ .Values.coreVolumeSubPath }}
+          {{- end }}          
         - name: plugins
           mountPath: /plugins
         securityContext:
@@ -82,3 +87,23 @@ spec:
       imagePullSecrets:
       - name: {{ .Values.imagePullSecret }}
 {{- end -}}
+  volumeClaimTemplates:
+    - metadata:
+        name: datadir
+        annotations:
+        {{- if .Values.coreVolumeAnnotations }}
+{{ toYaml .Values.coreVolumeAnnotations | indent 12 }}
+        {{- end }}
+      spec:
+        accessModes:
+          - ReadWriteOnce
+      {{- if .Values.coreVolumeStorageClass }}
+      {{- if (eq "-" .Values.coreVolumeStorageClass) }}
+        storageClassName: ""
+      {{- else }}
+        storageClassName: "{{ .Values.coreVolumeStorageClass }}"
+      {{- end }}
+      {{- end }}
+        resources:
+          requests:
+            storage: "{{ .Values.coreVolumeSize }}"
