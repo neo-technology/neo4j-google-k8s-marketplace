@@ -35,6 +35,7 @@ helm template chart/ \
    --set NAMESPACE=default \
    --set reportingSecret=XYZ \
    --set image=gcr.io/neo4j-k8s-marketplace-public/neo4j:3.3.5-enterprise \
+   --set name=mygraph \
    --set APP_INSTANCE_NAME=mygraph \
    --set neo4jPassword=mySecretPassword \
    --set authEnabled=true \
@@ -83,7 +84,7 @@ DEPLOYER_IMAGE=gcr.io/neo4j-k8s-marketplace-public/neo4j-deployer:latest
 APP_INSTANCE_NAME="neo4j-$(head -c 3 /dev/urandom | base64 - | sed 's/[^A-Za-z0-9]/x/g' | tr '[:upper:]' '[:lower:]')"
 vendor/marketplace-k8s-app-tools/scripts/start.sh \
    --deployer=$DEPLOYER_IMAGE \
-   --parameters='{"NAMESPACE": "default", "APP_INSTANCE_NAME": "'$APP_INSTANCE_NAME'", "coreServers":"3", "readReplicaServers":"0","reportingSecret": "XYZ", "image": "gcr.io/neo4j-k8s-marketplace-public/neo4j:3.3.5-enterprise"}'
+   --parameters='{"NAMESPACE": "default", "APP_INSTANCE_NAME": "'$APP_INSTANCE_NAME'", "coreServers":"3", "cpu":"500m", "mem": "3Gi", "volumeSize": "7Gi", "volumeStorageClass":"pd-ssd", "readReplicaServers":"0", "reportingSecret": "XYZ", "image": "gcr.io/neo4j-k8s-marketplace-public/neo4j:3.3.5-enterprise"}'
 ```
 
 Once deployed, the instructions above on getting logs and running cypher-shell still apply.
