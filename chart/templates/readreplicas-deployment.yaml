@@ -1,4 +1,4 @@
-apiVersion: apps/v1beta1
+apiVersion: "apps/v1beta1"
 kind: Deployment
 metadata:
   name: "{{ template "neo4j.replica.fullname" . }}"
@@ -7,7 +7,7 @@ metadata:
     release: {{ .Values.APP_INSTANCE_NAME | quote }}
     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
     app: {{ template "neo4j.name" . }}
-    component: replica
+    component: readreplica
 spec:
   replicas: {{ .Values.readReplicaServers }}
   template:
@@ -63,19 +63,20 @@ spec:
           name: bolt
         - containerPort: 6000
           name: tx
-        volumeMounts:
-        - name: datadir
-          mountPath: "{{ .Values.coreVolumeMountPath }}"
-          {{- if .Values.coreVolumeSubPath }}
-          subPath: {{ .Values.coreVolumeSubPath }}
-          {{- end }}          
-        - name: plugins
-          mountPath: /plugins
         securityContext:
           privileged: true
+        volumeMounts:
+        - name: plugins
+          mountPath: /plugins
+        resources:
+{{ toYaml .Values.resources | indent 10 }}         
 {{- if .Values.sidecarContainers }}
 {{ toYaml .Values.sidecarContainers | indent 6 }}
 {{- end }}
+{{- if .Values.imagePullSecret }}
+      imagePullSecrets:
+      - name: {{ .Values.imagePullSecret }}
+{{- end -}}
 {{- if .Values.readReplicaInitContainers }}
       initContainers:
 {{ toYaml .Values.readReplicaInitContainers | indent 6 }}
@@ -83,27 +84,3 @@ spec:
       volumes:
         - name: plugins
           emptyDir: {}
-{{- if .Values.imagePullSecret }}
-      imagePullSecrets:
-      - name: {{ .Values.imagePullSecret }}
-{{- end -}}
-  volumeClaimTemplates:
-    - metadata:
-        name: datadir
-        annotations:
-        {{- if .Values.coreVolumeAnnotations }}
-{{ toYaml .Values.coreVolumeAnnotations | indent 12 }}
-        {{- end }}
-      spec:
-        accessModes:
-          - ReadWriteOnce
-      {{- if .Values.coreVolumeStorageClass }}
-      {{- if (eq "-" .Values.coreVolumeStorageClass) }}
-        storageClassName: ""
-      {{- else }}
-        storageClassName: "{{ .Values.coreVolumeStorageClass }}"
-      {{- end }}
-      {{- end }}
-        resources:
-          requests:
-            storage: "{{ .Values.coreVolumeSize }}"
