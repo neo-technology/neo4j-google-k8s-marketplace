@@ -9,7 +9,7 @@ NEO4J_VERSION=3.3.5-enterprise
 gcloud beta container clusters create $CLUSTER \
     --zone "$ZONE" \
     --project $PROJECT \
-    --machine-type "n1-highmem-4" \
+    --machine-type "n1-standard-1" \
     --num-nodes "3" \
     --max-nodes "10" \
     --enable-autoscaling
