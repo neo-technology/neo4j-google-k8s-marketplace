@@ -26,6 +26,10 @@ gcloud docker -- push gcr.io/neo4j-k8s-marketplace-public/ubbagent:neo4j
 Test Image for Helm:
 
 ```
+docker pull dduportal/bats:0.4.0
+docker tag dduportal/bats:0.4.0 gcr.io/neo4j-k8s-marketplace-public/dduportal/bats:0.4.0
+gcloud docker -- push gcr.io/neo4j-k8s-marketplace-public/dduportal/bats:0.4.0
+
 docker pull markhneedham/k8s-kubectl:master
 docker tag markhneedham/k8s-kubectl:master gcr.io/neo4j-k8s-marketplace-public/markneedham/k8s-kubectl:master
 gcloud docker -- push gcr.io/neo4j-k8s-marketplace-public/markneedham/k8s-kubectl:master
