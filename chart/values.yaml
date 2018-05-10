@@ -56,13 +56,14 @@ coreVolumeAnnotations: {}
 ##
 # coreVolumeSubPath: ""
 coreVolumeSize: 10Gi
+
 ## core server data Persistent Volume Storage Class
 ## If defined, storageClassName: <storageClass>
 ## If set to "-", storageClassName: "", which disables dynamic provisioning
 ## If undefined (the default) or set to null, no storageClassName spec is
 ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
 ##   GKE, AWS & OpenStack)
-## coreVolumeStorageClass: "-"
+coreVolumeStorageClass: pd-ssd
 
 # Pass extra vars if needed to neo4j docker containers
 # coreExtraVars:
@@ -83,10 +84,10 @@ readReplicaServers: 0
 #   value: extra-var-value-2
 readReplicaInitContainers: []
 
-resources: {}
-# requests:
-#   cpu: 1
-#   memory: 16Gi
+resources:
+ requests:
+   cpu: 1
+   memory: 16Gi
 # limits:
 #   cpu: 100m
 #   memory: 512Mi
