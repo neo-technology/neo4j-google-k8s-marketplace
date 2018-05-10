@@ -26,15 +26,39 @@ properties:
     type: int
     default: 3
     minimum: 3
+    maximum: 9
   readReplicaServers:
     title: Read Replicas
     type: int
     default: 0
     minimum: 0
+    maximum: 9
   authEnabled:
     title: Enable Authorization
     type: string
     default: "true"
+    enum:
+    - "true"
+    - "false"
+  cpu:
+    title: CPU units per node
+    type: string
+    default: "1"
+  mem:
+    title: Memory per node
+    type: string
+    default: "2Gi"
+  volumeSize:
+    title: Disk allocation to core nodes
+    type: string
+    default: "10Gi"
+  volumeStorageClass:
+    title: Storage class for nodes, pd-ssd for SSD storage recommended.
+    type: string
+    default: "pd-ssd"
+    enum:
+    - pd-ssd
+    - pd-standard
   
 required:
 - APP_INSTANCE_NAME
