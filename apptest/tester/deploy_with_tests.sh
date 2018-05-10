@@ -16,6 +16,12 @@
 
 set -eox pipefail
 
+echo "Test start"
+
+env
+ls -l /tools
+ls -l /tests
+
 # TODO(#53) Replace with real tester.
 # This is an empty tester for connecting to the driver verification
 
