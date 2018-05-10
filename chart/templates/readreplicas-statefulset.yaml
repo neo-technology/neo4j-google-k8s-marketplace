@@ -1,32 +1,36 @@
-apiVersion: "apps/v1beta1"
-kind: Deployment
+apiVersion: "apps/v1beta2"
+kind: StatefulSet
 metadata:
   name: "{{ template "neo4j.replica.fullname" . }}"
-  labels:
-    heritage: {{ .Release.Service | quote }}
-    release: {{ .Values.APP_INSTANCE_NAME | quote }}
-    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
-    app: {{ template "neo4j.name" . }}
-    component: readreplica
 spec:
+  serviceName: {{ template "neo4j.fullname" . }}-readreplica
   replicas: {{ .Values.readReplicaServers }}
+  selector:
+    matchLabels:
+      release: {{ .Values.APP_INSTANCE_NAME | quote }}
+      app: {{ template "neo4j.name" . }}
+      component: readreplica
   template:
     metadata:
       labels:
-        app: {{ template "neo4j.name" . }}
+        heritage: {{ .Release.Service | quote }}
         release: {{ .Values.APP_INSTANCE_NAME | quote }}
-        component: replica
+        chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+        app: {{ template "neo4j.name" . }}
+        component: readreplica
     spec:
       containers:
-      - name: neo4j
+      - name: {{ template "neo4j.fullname" . }}
         image: "{{ .Values.image }}"
         imagePullPolicy: "{{ .Values.imagePullPolicy }}"
         env:
+          - name: NEO4J_ACCEPT_LICENSE_AGREEMENT
+            value: "yes"          
           - name: NEO4J_dbms_mode
             value: READ_REPLICA
-          - name: NEO4J_ACCEPT_LICENSE_AGREEMENT
-            value: "yes"
-          - name: NEO4J_dbms_security_auth__enabled
+          - name: NUMBER_OF_CORES
+            value: "{{ .Values.coreServers }}"
+          - name: AUTH_ENABLED
             value: "{{ .Values.authEnabled }}"
           - name: NEO4J_causal__clustering_discovery__type
             value: DNS
@@ -47,7 +51,11 @@ spec:
           - "-c"
           - |
             export NEO4J_dbms_connectors_default__advertised__address=$(hostname -f)
+            export NEO4J_causal__clustering_discovery__advertised__address=$(hostname -f):5000
             export NEO4J_causal__clustering_transaction__advertised__address=$(hostname -f):6000
+            export NEO4J_causal__clustering_raft__advertised__address=$(hostname -f):7000
+            export NEO4J_dbms_connector_https_enabled=true
+            export NEO4J_dbms_connector_https_listen_address=0.0.0.0:7473
 
             if [ "${AUTH_ENABLED:-}" == "true" ]; then
               export NEO4J_AUTH="neo4j/${NEO4J_SECRETS_PASSWORD}"
@@ -57,30 +65,57 @@ spec:
 
             exec /docker-entrypoint.sh "neo4j"
         ports:
-        - containerPort: 7474
-          name: browser
-        - containerPort: 7687
-          name: bolt
         - containerPort: 6000
           name: tx
+        - containerPort: 7474
+          name: browserhttp
+        - containerPort: 7473
+          name: browserhttps
+        - containerPort: 7687
+          name: bolt
         securityContext:
           privileged: true
         volumeMounts:
+        - name: datadir
+          mountPath: "{{ .Values.volumeMountPath }}"
+          {{- if .Values.volumeSubPath }}
+          subPath: {{ .Values.volumeSubPath }}
+          {{- end }}
         - name: plugins
           mountPath: /plugins
         resources:
-{{ toYaml .Values.resources | indent 10 }}         
-{{- if .Values.sidecarContainers }}
-{{ toYaml .Values.sidecarContainers | indent 6 }}
+{{ toYaml .Values.resources | indent 10 }}
+{{- if .Values.coreSidecarContainers }}
+{{ toYaml .Values.coreSidecarContainers | indent 6 }}
 {{- end }}
 {{- if .Values.imagePullSecret }}
       imagePullSecrets:
       - name: {{ .Values.imagePullSecret }}
 {{- end -}}
-{{- if .Values.readReplicaInitContainers }}
+{{- if .Values.coreInitContainers }}
       initContainers:
-{{ toYaml .Values.readReplicaInitContainers | indent 6 }}
+{{ toYaml .Values.coreInitContainers | indent 6 }}
 {{- end }}
       volumes:
         - name: plugins
           emptyDir: {}
+  volumeClaimTemplates:
+    - metadata:
+        name: datadir
+        annotations:
+        {{- if .Values.volumeAnnotations }}
+{{ toYaml .Values.volumeAnnotations | indent 12 }}
+        {{- end }}
+      spec:
+        accessModes:
+          - ReadWriteOnce
+      {{- if .Values.volumeStorageClass }}
+      {{- if (eq "-" .Values.volumeStorageClass) }}
+        storageClassName: ""
+      {{- else }}
+        storageClassName: "{{ .Values.volumeStorageClass }}"
+      {{- end }}
+      {{- end }}
+        resources:
+          requests:
+            storage: "{{ .Values.volumeSize }}"
