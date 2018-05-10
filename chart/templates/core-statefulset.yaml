@@ -54,6 +54,8 @@ spec:
             export NEO4J_causal__clustering_discovery__advertised__address=$(hostname -f):5000
             export NEO4J_causal__clustering_transaction__advertised__address=$(hostname -f):6000
             export NEO4J_causal__clustering_raft__advertised__address=$(hostname -f):7000
+            export NEO4J_dbms_connector_https_enabled=true
+            export NEO4J_dbms_connector_https_listen_address=0.0.0.0:7473            
 
             if [ "${AUTH_ENABLED:-}" == "true" ]; then
               export NEO4J_AUTH="neo4j/${NEO4J_SECRETS_PASSWORD}"
@@ -70,16 +72,18 @@ spec:
         - containerPort: 6000
           name: tx
         - containerPort: 7474
-          name: browser
+          name: browserhttp
+        - containerPort: 7473
+          name: browserhttps
         - containerPort: 7687
           name: bolt
         securityContext:
           privileged: true
         volumeMounts:
         - name: datadir
-          mountPath: "{{ .Values.coreVolumeMountPath }}"
-          {{- if .Values.coreVolumeSubPath }}
-          subPath: {{ .Values.coreVolumeSubPath }}
+          mountPath: "{{ .Values.volumeMountPath }}"
+          {{- if .Values.volumeSubPath }}
+          subPath: {{ .Values.volumeSubPath }}
           {{- end }}
         - name: plugins
           mountPath: /plugins
@@ -103,19 +107,19 @@ spec:
     - metadata:
         name: datadir
         annotations:
-        {{- if .Values.coreVolumeAnnotations }}
-{{ toYaml .Values.coreVolumeAnnotations | indent 12 }}
+        {{- if .Values.volumeAnnotations }}
+{{ toYaml .Values.volumeAnnotations | indent 12 }}
         {{- end }}
       spec:
         accessModes:
           - ReadWriteOnce
-      {{- if .Values.coreVolumeStorageClass }}
-      {{- if (eq "-" .Values.coreVolumeStorageClass) }}
+      {{- if .Values.volumeStorageClass }}
+      {{- if (eq "-" .Values.volumeStorageClass) }}
         storageClassName: ""
       {{- else }}
-        storageClassName: "{{ .Values.coreVolumeStorageClass }}"
+        storageClassName: "{{ .Values.volumeStorageClass }}"
       {{- end }}
       {{- end }}
         resources:
           requests:
-            storage: "{{ .Values.coreVolumeSize }}"
+            storage: "{{ .Values.volumeSize }}"
