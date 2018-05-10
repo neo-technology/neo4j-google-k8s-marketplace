@@ -35,11 +35,16 @@ helm template chart/ \
    --set NAMESPACE=default \
    --set reportingSecret=XYZ \
    --set image=gcr.io/neo4j-k8s-marketplace-public/neo4j:3.3.5-enterprise \
-   --set name=mygraph \
-   --set APP_INSTANCE_NAME=mygraph \
+   --set name=graph2 \
+   --set APP_INSTANCE_NAME=graph2 \
    --set neo4jPassword=mySecretPassword \
    --set authEnabled=true \
    --set coreServers=3 \
+   --set readReplicaServers=0 \
+   --set resources.requests.cpu=200m \
+   --set resources.requests.memory=1Gi \
+   --set volumeSize=2Gi \
+   --set volumeStorageClass=pd-standard \
    --set acceptLicenseAgreement=yes > expanded.yaml
 
 ### Applying to Cluster
