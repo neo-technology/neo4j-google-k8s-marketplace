@@ -83,10 +83,10 @@ readReplicaServers: $readReplicaServers
 #   value: extra-var-value-2
 readReplicaInitContainers: []
 
-resources: {}
+resources:
+ requests:
+   cpu: 1
+   memory: 12Gi
 # limits:
-#   cpu: 100m
-#   memory: 512Mi
-# requests:
 #   cpu: 100m
 #   memory: 512Mi
