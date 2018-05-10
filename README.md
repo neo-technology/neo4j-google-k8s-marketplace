@@ -25,7 +25,7 @@ See `setup-k8s.sh` for instructions.
 make app/build
 ```
 
-## Local Testing
+## Running from your Local Machine
 
 These instructions mimic what the deployment container does.
 
@@ -88,6 +88,19 @@ vendor/marketplace-k8s-app-tools/scripts/start.sh \
 ```
 
 Once deployed, the instructions above on getting logs and running cypher-shell still apply.
+
+## Running Tests
+
+- Build the test conainer `make app/build-test`
+- Run tests
+
+```
+vendor/marketplace-k8s-app-tools/scripts/start_test.sh \
+   --marketplace_tools=vendor/marketplace-k8s-app-tools \
+   --deployer=gcr.io/neo4j-k8s-marketplace-public/neo4j-tester:latest \
+   --test_parameters='{"foo":"6","bar":"7"}' \
+   --parameters='{"APP_TESTER_IMAGE":"gcr.io/neo4j-k8s-marketplace-public/neo4j-tester:latest","APP_INSTANCE_NAME":"foo","NAMESPACE":"default"}'
+```
 
 # User Guide
 

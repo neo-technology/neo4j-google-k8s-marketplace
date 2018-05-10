@@ -3,7 +3,6 @@ REGISTRY = gcr.io/neo4j-k8s-marketplace-public
 APP_REGISTRY=$(REGISTRY)/neo4j
 APP_DEPLOYER_IMAGE=$(REGISTRY)/neo4j-deployer:latest
 APP_TAG=3.3.5-enterprise
-APP_TESTER_IMAGE = gcr.io/neo4j-k8s-marketplace-public/neo4j-tester:latest
 tools_path = ./vendor/marketplace-k8s-app-tools
 
 include $(tools_path)/gcloud.Makefile
@@ -12,7 +11,7 @@ include $(tools_path)/crd.Makefile
 include $(tools_path)/app.Makefile
 include $(tools_path)/ubbagent.Makefile
 
-APP_TESTER_IMAGE = $(REGISTRY)/tester:latest
+APP_TESTER_IMAGE = $(REGISTRY)/neo4j-tester:latest
 
 define APP_PARAMETERS
 { \
