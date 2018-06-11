@@ -1,5 +1,5 @@
 properties:
-  APP_INSTANCE_NAME:
+  NAME:
     type: string
     x-google-marketplace:
       type: NAME
@@ -13,7 +13,7 @@ properties:
       type: REPORTING_SECRET  
   image:
     type: string
-    default: gcr.io/neo4j-k8s-marketplace-public/neo4j:3.3.5-enterprise
+    default: $REGISTRY:$TAG
     x-google-marketplace:
       type: IMAGE
   ubbAgentImage:
@@ -43,26 +43,23 @@ properties:
   cpu:
     title: CPU units per node
     type: string
-    default: "1"
+    default: "100m"
   mem:
     title: Memory per node
     type: string
-    default: "2Gi"
+    default: "512M"
   volumeSize:
     title: Disk allocation to core nodes
     type: string
-    default: "10Gi"
+    default: "2Gi"
   volumeStorageClass:
     title: Storage class for nodes, pd-ssd for SSD storage recommended.
     type: string
-    default: "pd-ssd"
+    default: "-"
     enum:
-    - pd-ssd
-    - pd-standard
-  
+    - "-"
 required:
-- APP_INSTANCE_NAME
+- NAME
 - NAMESPACE
 - image
 - reportingSecret
-- coreServers

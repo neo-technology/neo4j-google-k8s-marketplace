@@ -1,7 +1,9 @@
-FROM launcher.gcr.io/google/debian9 AS tester
-COPY apptest/tester/deploy_with_tests.sh /bin
-RUN chmod +x /bin/*.sh
-RUN mkdir /tests
-COPY apptest/tests/* /tests
+FROM dduportal/bats:0.4.0
+LABEL Maintainer="David Allen <david.allen@neo4j.com>"
 
-ENTRYPOINT ["/bin/bash", "/bin/deploy_with_tests.sh"]
+COPY ./apptest/tests /tests
+
+# Optional:
+RUN apt-get install -y curl
+
+CMD ["/tests/test.sh"]

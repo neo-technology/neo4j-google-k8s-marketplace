@@ -20,7 +20,7 @@ git submodule update --recursive --init --force
 See `setup-k8s.sh` for instructions.
 
 ## Building the Deployment Container
-
+ 
 ```
 make app/build
 ```
@@ -89,10 +89,20 @@ DEPLOYER_IMAGE=gcr.io/neo4j-k8s-marketplace-public/neo4j-deployer:latest
 APP_INSTANCE_NAME="neo4j-$(head -c 3 /dev/urandom | base64 - | sed 's/[^A-Za-z0-9]/x/g' | tr '[:upper:]' '[:lower:]')"
 vendor/marketplace-k8s-app-tools/scripts/start.sh \
    --deployer=$DEPLOYER_IMAGE \
-   --parameters='{"NAMESPACE": "default", "APP_INSTANCE_NAME": "'$APP_INSTANCE_NAME'", "coreServers":"3", "cpu":"500m", "mem": "3Gi", "volumeSize": "7Gi", "volumeStorageClass":"pd-ssd", "readReplicaServers":"0", "reportingSecret": "XYZ", "image": "gcr.io/neo4j-k8s-marketplace-public/neo4j:3.3.5-enterprise"}'
+   --name="$APP_INSTANCE_NAME" \
+   --namespace=default \
+   --parameters='{"NAME":"'$APP_INSTANCE_NAME'","NAMESPACE":"default","coreServers":"3", "cpu":"100m", "mem": "512M", "volumeSize": "2Gi", 
+   "readReplicaServers":"0", "reportingSecret": "XYZ", "image": "gcr.io/neo4j-k8s-marketplace-public/neo4j:3.3.5-enterprise"}'
 ```
 
 Once deployed, the instructions above on getting logs and running cypher-shell still apply.
+
+To stop/delete, assuming that the generated name was `neo4j-qy7n`:
+
+```
+export MY_APP=neo4j-qy7n
+kubectl delete application/$MY_APP
+```
 
 ## Running Tests
 

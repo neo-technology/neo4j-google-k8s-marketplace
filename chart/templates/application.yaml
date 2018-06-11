@@ -30,14 +30,26 @@ spec:
     matchLabels:
       app.kubernetes.io/name: "{{ .Release.Name }}"
   componentKinds:
-  - kind: Deployment
-  - kind: StatefulSet
-  - kind: PodDisruptionBudget
-  - kind: Secret
-  - kind: ConfigMap
-  - kind: ReplicaSet
-  - kind: Role
-  - kind: RoleBinding
-  - kind: PersistentVolumeClaim
-  - kind: Service
-  - kind: Job
+  - group: apps/v1
+    kind: Deployment
+  - group: batch/v1
+    kind: Job
+  - group: v1
+    kind: PersistentVolumeClaim
+  - group: apps/v1beta2
+    kind: StatefulSet
+  - group: policy/v1beta1
+    kind: PodDisruptionBudget
+  - group: apps/v1
+    kind: Secret
+  - group: apps/v1
+    kind: ConfigMap
+  - group: apps/v1beta2
+    kind: ReplicaSet
+  - group: rbac.authorization.k8s.io/v1
+    kind: Role
+  - group: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+  - group: apps/v1
+    kind: Service
+  
