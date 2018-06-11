@@ -40,14 +40,22 @@ properties:
     enum:
     - "true"
     - "false"
-  cpu:
+  cpuRequest:
     title: CPU units per node
     type: string
     default: "100m"
-  mem:
+  memoryRequest:
     title: Memory per node
     type: string
     default: "512M"
+  cpuLimit:
+    title: CPU units per node (limit)
+    type: string
+    default: "8"
+  memoryLimit:
+    title: Memory per node (limit)
+    type: string
+    default: "512G"
   volumeSize:
     title: Disk allocation to core nodes
     type: string
@@ -55,7 +63,7 @@ properties:
   volumeStorageClass:
     title: Storage class for nodes, pd-ssd for SSD storage recommended.
     type: string
-    default: "-"
+    default: "pd-standard"
     enum:
     - "-"
 required:

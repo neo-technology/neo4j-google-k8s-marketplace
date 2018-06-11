@@ -1,4 +1,4 @@
-{{ required "A valid foo APP_INSTANCE_NAME is required" .Values.APP_INSTANCE_NAME }}
+{{ required "A valid APP_INSTANCE_NAME is required" .Values.APP_INSTANCE_NAME }}
 
 {{/* vim: set filetype=mustache: */}}
 {{/*

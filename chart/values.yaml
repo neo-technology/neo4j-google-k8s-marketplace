@@ -3,6 +3,7 @@
 # Declare name/value pairs to be passed into your templates.
 # name: value
 
+NAME: "neo4j"
 name: "neo4j"
 APP_INSTANCE_NAME: "neo4j"
 
@@ -63,7 +64,7 @@ volumeSize: 10Gi
 ## If undefined (the default) or set to null, no storageClassName spec is
 ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
 ##   GKE, AWS & OpenStack)
-volumeStorageClass:
+volumeStorageClass: "pd-standard"
 
 # Pass extra vars if needed to neo4j docker containers
 # coreExtraVars:
@@ -84,10 +85,7 @@ readReplicaServers: 0
 #   value: extra-var-value-2
 readReplicaInitContainers: []
 
-resources:
- requests:
-   cpu: 1
-   memory: 2Gi
-# limits:
-#   cpu: 100m
-#   memory: 512Mi
+cpuRequest: 200m
+cpuLimit: 8
+memoryRequest: 512M
+memoryLimit: 512Gi

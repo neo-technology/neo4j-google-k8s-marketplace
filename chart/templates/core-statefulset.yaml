@@ -88,7 +88,12 @@ spec:
         - name: plugins
           mountPath: /plugins
         resources:
-{{ toYaml .Values.resources | indent 10 }}
+          requests:
+            cpu: "{{ .Values.cpuRequest }}"
+            memory: "{{ .Values.memoryRequest }}"
+          limits:
+            cpu: "{{ .Values.cpuLimit }}"
+            memory: "{{ .Values.memoryLimit }}"
 {{- if .Values.coreSidecarContainers }}
 {{ toYaml .Values.coreSidecarContainers | indent 6 }}
 {{- end }}
@@ -113,13 +118,7 @@ spec:
       spec:
         accessModes:
           - ReadWriteOnce
-      {{- if .Values.volumeStorageClass }}
-      {{- if (eq "-" .Values.volumeStorageClass) }}
-        storageClassName: ""
-      {{- else }}
-        storageClassName: "{{ .Values.volumeStorageClass }}"
-      {{- end }}
-      {{- end }}
+        # storageClassName: "{{ .Values.volumeStorageClass }}"
         resources:
           requests:
             storage: "{{ .Values.volumeSize }}"
