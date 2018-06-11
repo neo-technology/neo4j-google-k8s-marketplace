@@ -64,7 +64,7 @@ volumeSize: 10Gi
 ## If undefined (the default) or set to null, no storageClassName spec is
 ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
 ##   GKE, AWS & OpenStack)
-volumeStorageClass: "pd-standard"
+volumeStorageClass: standard
 
 # Pass extra vars if needed to neo4j docker containers
 # coreExtraVars:

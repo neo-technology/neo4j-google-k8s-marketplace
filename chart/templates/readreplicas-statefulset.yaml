@@ -55,7 +55,7 @@ spec:
             export NEO4J_causal__clustering_transaction__advertised__address=$(hostname -f):6000
             export NEO4J_causal__clustering_raft__advertised__address=$(hostname -f):7000
             export NEO4J_dbms_connector_https_enabled=true
-            export NEO4J_dbms_connector_https_listen_address=0.0.0.0:7473
+            export NEO4J_dbms_connector_https_listen__address=:7473
 
             if [ "${AUTH_ENABLED:-}" == "true" ]; then
               export NEO4J_AUTH="neo4j/${NEO4J_SECRETS_PASSWORD}"
@@ -114,7 +114,7 @@ spec:
       spec:
         accessModes:
           - ReadWriteOnce
-        # storageClassName: "{{ .Values.volumeStorageClass }}"
+        storageClassName: "{{ .Values.volumeStorageClass }}"
         resources:
           requests:
             storage: "{{ .Values.volumeSize }}"

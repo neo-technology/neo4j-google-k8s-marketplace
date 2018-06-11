@@ -31,6 +31,7 @@ app/build-test:: app/build .build/tester
 .build/deployer: schema.yaml \
 				 deployer/* \
 				 chart/* \
+				 chart/templates/* \
 				 apptest/deployer/* \
 				 .build/marketplace/deployer/helm \
 				 .build/var/REGISTRY \

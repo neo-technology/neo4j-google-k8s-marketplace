@@ -63,7 +63,7 @@ properties:
   volumeStorageClass:
     title: Storage class for nodes, pd-ssd for SSD storage recommended.
     type: string
-    default: "pd-standard"
+    default: standard
     enum:
     - "-"
 required:
