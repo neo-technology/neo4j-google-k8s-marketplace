@@ -7,14 +7,14 @@ spec:
   replicas: {{ .Values.readReplicaServers }}
   selector:
     matchLabels:
-      release: {{ .Values.APP_INSTANCE_NAME | quote }}
+      release: {{ .Values.name | quote }}
       app: {{ template "neo4j.name" . }}
       component: readreplica
   template:
     metadata:
       labels:
         heritage: {{ .Release.Service | quote }}
-        release: {{ .Values.APP_INSTANCE_NAME | quote }}
+        release: {{ .Values.name | quote }}
         chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
         app: {{ template "neo4j.name" . }}
         component: readreplica

@@ -4,7 +4,7 @@ metadata:
   name: {{ template "neo4j.fullname" . }}
   labels:
     heritage: {{ .Release.Service | quote }}
-    release: {{ .Values.APP_INSTANCE_NAME | quote }}
+    release: {{ .Values.name | quote }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
     app: {{ template "neo4j.name" . }}
     component: core
@@ -25,5 +25,5 @@ spec:
       targetPort: 7687
   selector:
     app: {{ template "neo4j.name" . }}
-    release: {{ .Values.APP_INSTANCE_NAME | quote }}
+    release: {{ .Values.name | quote }}
     component: core

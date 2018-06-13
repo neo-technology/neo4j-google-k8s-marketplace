@@ -1,9 +1,9 @@
 properties:
-  NAME:
+  name:
     type: string
     x-google-marketplace:
       type: NAME
-  NAMESPACE:
+  namespace:
     type: string
     x-google-marketplace:
       type: NAMESPACE
@@ -67,7 +67,7 @@ properties:
     enum:
     - "-"
 required:
-- NAME
-- NAMESPACE
+- name
+- namespace
 - image
 - reportingSecret

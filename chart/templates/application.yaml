@@ -11,7 +11,7 @@ metadata:
   labels:
     app.kubernetes.io/name: "{{ .Release.Name }}"
     heritage: {{ .Release.Service | quote }}
-    release: {{ .Values.APP_INSTANCE_NAME | quote }}
+    release: {{ .Values.name | quote }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
     app: {{ template "neo4j.name" . }}
     component: core    
