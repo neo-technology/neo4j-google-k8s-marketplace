@@ -56,12 +56,13 @@ kubectl delete application/$MY_APP
 - Run tests
 
 ```
-vendor/marketplace-k8s-app-tools/scripts/start_test.sh \
-   --marketplace_tools=vendor/marketplace-k8s-app-tools \
-   --deployer=gcr.io/neo4j-k8s-marketplace-public/neo4j-tester:latest \
-   --test_parameters='{"foo":"6","bar":"7"}' \
-   --parameters='{"APP_TESTER_IMAGE":"gcr.io/neo4j-k8s-marketplace-public/neo4j-tester:latest","APP_INSTANCE_NAME":"foo","NAMESPACE":"default"}'
+make app/verify
 ```
+
+That app/verify target, like many others, is provided for by Google's
+marketplace tools repo; consult app.Makefile in that repo for full details. 
+Behind the scenes, it invokes `driver.sh` to deploy, wait for successful deploy,
+and launch the testing container.
 
 ## Running from your Local Machine
 
