@@ -44,6 +44,8 @@ spec:
     kind: Secret
   - group: apps/v1
     kind: ConfigMap
+  - group: apps/v1
+    kind: Pod
   - group: apps/v1beta2
     kind: ReplicaSet
   - group: rbac.authorization.k8s.io/v1
