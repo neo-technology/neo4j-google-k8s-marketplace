@@ -7,12 +7,6 @@ https://console.cloud.google.com/gcr/images/neo4j-k8s-marketplace-public/
 
 # Pushing Docker Images
 
-```
-docker pull neo4j:3.3.5-enterprise
-docker tag neo4j:3.3.5-enterprise gcr.io/neo4j-k8s-marketplace-public/neo4j:3.3.5-enterprise
-gcloud docker -- push gcr.io/neo4j-k8s-marketplace-public/neo4j:3.3.5-enterprise
-```
-
 Build the [UBB agent](https://github.com/GoogleCloudPlatform/ubbagent) as a
 docker container, and then push that.
 
