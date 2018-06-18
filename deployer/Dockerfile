@@ -9,6 +9,10 @@ ADD chart /tmp/chart
 RUN cd /tmp \
     && tar -czvf /tmp/neo4j.tar.gz chart
 
+ADD apptest/deployer/neo4j /tmp/test/chart
+RUN cd /tmp/test \
+    && tar -czvf /tmp/test/neo4j.tar.gz chart/
+
 ARG REGISTRY
 ARG TAG
 
@@ -22,9 +26,11 @@ RUN cat /tmp/schema.yaml \
 
 FROM gcr.io/google-marketplace-tools/k8s/deployer_helm
 COPY --from=build /tmp/neo4j.tar.gz /data/chart/
-#COPY --from=build /tmp/test/neo4j.tar.gz /data-test/chart/
-#COPY apptest/deployer/config.yaml /data-test/
-#COPY apptest/deployer/schema.yaml /data-test/
+COPY --from=build /tmp/test/neo4j.tar.gz /data-test/chart/
+COPY apptest/deployer/schema.yaml /data-test/
 
 COPY --from=build /tmp/schema.yaml.subst /data/schema.yaml
+
+COPY apptest/deployer/schema.yaml /data-test/
+
 RUN ls -l /data/
