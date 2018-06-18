@@ -2,7 +2,7 @@ APP_NAME = neo4j
 REGISTRY = gcr.io/neo4j-k8s-marketplace-public
 APP_REGISTRY=$(REGISTRY)/neo4j
 APP_DEPLOYER_IMAGE=$(REGISTRY)/neo4j-deployer:latest
-APP_TAG=3.3.5-enterprise
+APP_TAG=3.4.1-enterprise
 tools_path = ./vendor/marketplace-k8s-app-tools
 
 include $(tools_path)/crd.Makefile
@@ -27,6 +27,8 @@ APP_TEST_PARAMETERS ?= { \
 app/build:: .build/neo4j .build/deployer .build/tester
 
 app/build-test:: app/build .build/tester
+
+app/image:: .build/neo4j
 
 .build/deployer: schema.yaml \
 				 deployer/* \
@@ -57,7 +59,7 @@ app/build-test:: app/build .build/tester
 # Simulate building of primary app image. Actually just copying public image to
 # local registry.
 .build/neo4j: .build/var/REGISTRY
-    docker pull neo4j:3.3.5-enterprise
-	docker tag neo4j:3.3.5-enterprise $(REGISTRY)/neo4j:3.3.5-enterprise
+    docker pull neo4j:3.4.1-enterprise
+	docker tag neo4j:3.4.1-enterprise $(REGISTRY)/$(APP_TAG)
 	gcloud docker -- push "$(APP_REGISTRY):$(APP_TAG)"
 	@touch "$@"

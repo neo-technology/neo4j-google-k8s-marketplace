@@ -25,60 +25,6 @@ See `setup-k8s.sh` for instructions.
 make app/build
 ```
 
-## Running from your Local Machine
-
-These instructions mimic what the deployment container does.
-
-### Helm Expansion
-
-helm template chart/ \
-   --set NAMESPACE=default \
-   --set reportingSecret=XYZ \
-   --set image=gcr.io/neo4j-k8s-marketplace-public/neo4j:3.3.5-enterprise \
-   --set name=graph2 \
-   --set APP_INSTANCE_NAME=graph2 \
-   --set neo4jPassword=mySecretPassword \
-   --set authEnabled=true \
-   --set coreServers=3 \
-   --set readReplicaServers=0 \
-   --set resources.requests.cpu=200m \
-   --set resources.requests.memory=1Gi \
-   --set volumeSize=2Gi \
-   --set volumeStorageClass=pd-standard \
-   --set acceptLicenseAgreement=yes > expanded.yaml
-
-### Applying to Cluster
-
-```kubectl apply -f expanded.yaml```
-
-### Discovering the Password to your Cluster
-
-It's stored in a secret, base64 encoded.  With proper access you can unmask the password
-like this:
-
-```
-kubectl get secrets $APP_INSTANCE_NAME-neo4j-secrets -o yaml | grep neo4j-password: | sed 's/neo4j-password: *//' | base64 -D
-```
-
-### Connecting to an Instance
-
-```
-export APP_INSTANCE_NAME=mygraph
-
-kubectl run -it --rm cypher-shell \
-   --image=gcr.io/neo4j-k8s-marketplace-public/neo4j:3.3.5-enterprise \
-   --restart=Never \
-   --namespace=default \
-   --command -- ./bin/cypher-shell -u neo4j \
-   -p "$(kubectl get secrets $APP_INSTANCE_NAME-neo4j-secrets -o yaml | grep neo4j-password: | sed 's/neo4j-password: *//' | base64 -D)" \
-   -a $APP_INSTANCE_NAME-neo4j.default.svc.cluster.local "call dbms.cluster.overview()"
-```
-
-### Getting Logs
-```
-kubectl logs -l "app=neo4j,component=core"
-```
-
 ## Running the Deployer Container
 
 Using the marketplace-k8s-app-tools script to launch the deployment container mimics how google's
@@ -92,7 +38,7 @@ vendor/marketplace-k8s-app-tools/scripts/start.sh \
    --name="$APP_INSTANCE_NAME" \
    --namespace=default \
    --parameters='{"name":"'$APP_INSTANCE_NAME'","namespace":"default","coreServers":"3", "cpuRequest":"100m", "memoryRequest": "1Gi", "volumeSize": "2Gi", 
-   "readReplicaServers":"0", "reportingSecret": "XYZ", "image": "gcr.io/neo4j-k8s-marketplace-public/neo4j:3.3.5-enterprise"}'
+   "readReplicaServers":"0", "reportingSecret": "XYZ", "image": "gcr.io/neo4j-k8s-marketplace-public/neo4j:3.4.1-enterprise"}'
 ```
 
 Once deployed, the instructions above on getting logs and running cypher-shell still apply.
@@ -116,6 +62,61 @@ vendor/marketplace-k8s-app-tools/scripts/start_test.sh \
    --test_parameters='{"foo":"6","bar":"7"}' \
    --parameters='{"APP_TESTER_IMAGE":"gcr.io/neo4j-k8s-marketplace-public/neo4j-tester:latest","APP_INSTANCE_NAME":"foo","NAMESPACE":"default"}'
 ```
+
+## Running from your Local Machine
+
+These instructions mimic what the deployment container does.
+
+### Helm Expansion
+
+helm template chart/ \
+   --set namespace=default \
+   --set reportingSecret=XYZ \
+   --set image=gcr.io/neo4j-k8s-marketplace-public/neo4j:3.4.1-enterprise \
+   --set name=graph2 \
+   --set neo4jPassword=mySecretPassword \
+   --set authEnabled=true \
+   --set coreServers=3 \
+   --set readReplicaServers=0 \
+   --set cpuRequest=200m \
+   --set memoryRequest=1Gi \
+   --set volumeSize=2Gi \
+   --set volumeStorageClass=pd-standard \
+   --set acceptLicenseAgreement=yes > expanded.yaml
+
+### Applying to Cluster (Manual)
+
+```kubectl apply -f expanded.yaml```
+
+### Discovering the Password to your Cluster
+
+It's stored in a secret, base64 encoded.  With proper access you can unmask the password
+like this:
+
+```
+kubectl get secrets $APP_INSTANCE_NAME-neo4j-secrets -o yaml | grep neo4j-password: | sed 's/neo4j-password: *//' | base64 -D
+```
+
+### Connecting to an Instance
+
+```
+export APP_INSTANCE_NAME=mygraph
+
+kubectl run -it --rm cypher-shell \
+   --image=gcr.io/neo4j-k8s-marketplace-public/neo4j:3.4.1-enterprise \
+   --restart=Never \
+   --namespace=default \
+   --command -- ./bin/cypher-shell -u neo4j \
+   -p "$(kubectl get secrets $APP_INSTANCE_NAME-neo4j-secrets -o yaml | grep neo4j-password: | sed 's/neo4j-password: *//' | base64 -D)" \
+   -a $APP_INSTANCE_NAME-neo4j.default.svc.cluster.local "call dbms.cluster.overview()"
+```
+
+### Getting Logs
+
+```
+kubectl logs -l "app=neo4j,component=core"
+```
+
 
 # User Guide
 

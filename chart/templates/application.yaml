@@ -24,7 +24,7 @@ spec:
     url: https://neo4j.com
   links:
   - description: Getting Started
-    # REVISIT THIS URL
+    # TODO
     url: https://neo4j.com/developer/guide-cloud-deployment/
   selector:
     matchLabels:

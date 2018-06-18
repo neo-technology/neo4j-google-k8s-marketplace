@@ -7,7 +7,7 @@ name: "neo4j"
 
 # Specs for the Neo4j docker image
 image: "gcr.io/neo4j-k8s-marketplace-public/neo4j"
-imageTag: "3.3.5-enterprise"
+imageTag: "3.4.1-enterprise"
 ubbAgentImage: "gcr.io/neo4j-k8s-marketplace-public/ubbagent:neo4j"
 imagePullPolicy: "IfNotPresent"
 # imagePullSecret: registry-secret
