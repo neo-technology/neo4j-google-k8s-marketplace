@@ -87,3 +87,8 @@ cpuRequest: 200m
 cpuLimit: 8
 memoryRequest: 512M
 memoryLimit: 512Gi
+
+ports:
+  http: 7474
+  https: 7473
+  bolt: 7687
