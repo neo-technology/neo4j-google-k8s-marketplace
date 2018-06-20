@@ -56,19 +56,18 @@ app/image:: .build/neo4j
 	@date >> "$@"
 
 .build/tester: apptest/* .build/var/REGISTRY
+	#$(call print_target, $@)
+	#docker pull cosmintitei/bash-curl
+	#docker tag cosmintitei/bash-curl "$(APP_TESTER_IMAGE)"
+	#docker push "$(APP_TESTER_IMAGE)"
+	#@touch "$@"
 	$(call print_target, $@)
-	docker pull cosmintitei/bash-curl
-	docker tag cosmintitei/bash-curl "$(APP_TESTER_IMAGE)"
+	docker build \
+	   --tag "$(APP_TESTER_IMAGE)" \
+	   -f apptest/tester/Dockerfile \
+	   .
 	docker push "$(APP_TESTER_IMAGE)"
-	@touch "$@"
-
-#	$(call print_target, $@)
-#	docker build \
-#	   --tag "$(APP_TESTER_IMAGE)" \
-#	   -f apptest/tester/Dockerfile \
-#	   .
-#	docker push "$(APP_TESTER_IMAGE)"
-#	@date >> "$@"
+	@date >> "$@"
 
 # Simulate building of primary app image. Actually just copying public image to
 # local registry.

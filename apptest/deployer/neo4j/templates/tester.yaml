@@ -13,7 +13,7 @@ spec:
     volumeMounts:
     - name: config-volume
       mountPath: /tester
-    command: ["bash"]
+    # command: ["/tools/bats/bats", "-t", "/tester/run.sh"]
     args: ["/tester/run.sh"]
   restartPolicy: Never
   volumes:
@@ -32,14 +32,66 @@ metadata:
 data:
   run.sh: |-
     set -x
-    endpoint="http://{{ .Release.Name }}-neo4j.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}"
-    echo GET $endpoint
-    http_status_code=$(curl -o /dev/null -s -w "%{http_code}\n" $endpoint)
-    echo "Expected http status code: 200"
-    echo "Actual http status code: $http_status_code"
-    if [[ "$http_status_code" == "200" ]]; then
-      echo SUCCESS
-    else
-      echo FAILURE
-      exit 1
-    fi
+    host="{{ .Release.Name }}-neo4j.{{ .Release.Namespace }}.svc.cluster.local"
+    echo "HOST $host"
+    endpoint="http://$host:{{ .Values.service.port }}"
+    echo "ENDPOINT $endpoint"
+    NEO4J_SECRETS_PASSWORD=$(kubectl get secret -n "{{ .Release.Namespace }}" "{{ .Release.Name }}-neo4j-secrets" -o jsonpath='{.data.neo4j-password}' | base64 --decode)        
+    auth="neo4j:${NEO4J_SECRETS_PASSWORD}"
+    echo "AUTH $auth"
+    CORE_REPLICAS=3
+    @test "Testing Neo4j cluster has quorum" {
+      echo "checking if the cluster is up with $auth and $endpoint"
+      path="data"
+      for id in $(seq 0 $((CORE_REPLICAS - 1))); do
+        url="$endpoint/db/${path}"
+        attempts=10
+        attempt=0
+        while true; do
+          attempt=$[$attempt + 1]
+          echo "Try $attempt: Connecting to $endpoint/db/${path}"
+          run wget ${url} -qO- 2>&1
+          echo "Exit code: $status"
+          [ $status -eq 0 ] && break
+          [ "${attempt}" -ge "${attempts}" ] && exit 1
+          sleep 5
+        done
+      done
+    }
+    @test "Testing Neo4j core servers are available" {
+      echo "checking if nodes are available"
+      path="manage/server/core/available"
+      for id in $(seq 0 $((CORE_REPLICAS - 1))); do
+        url="$endpoint/db/${path}"
+        attempts=10
+        attempt=0
+        while true; do
+          attempt=$[$attempt + 1]
+          echo "Try $attempt: Connecting to $url with $auth"
+          response=$(wget ${url} -qO- 2>&1)
+          [ "$response" = "true" ] && break
+          [ "${attempt}" -ge "${attempts}" ] && exit 1
+          sleep 5
+        done
+      done
+    }
+    @test "REST API comes alive" {    
+      while true; do
+        response=$(curl -v $endpoint)
+        if [ $response -eq 0 ] ; then
+          break
+        fi
+        sleep 5
+      done    
+      echo GET $endpoint
+      http_status_code=$(curl -o /dev/null -s -w "%{http_code}\n" $endpoint)
+      echo "Expected http status code: 200"
+      echo "Actual http status code: $http_status_code"
+      if [[ "$http_status_code" == "200" ]]; then
+        echo SUCCESS
+      else
+        echo FAILURE
+        exit 1
+      fi
+    }
+
