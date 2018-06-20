@@ -11,12 +11,23 @@ spec:
   - name: tester
     image: "{{ .Values.tester.image }}"
     volumeMounts:
+    - name: secret-volume
+      mountPath: /secret
+      readOnly: true
     - name: config-volume
       mountPath: /tester
-    # command: ["/tools/bats/bats", "-t", "/tester/run.sh"]
+      readOnly: true
+    command: ["bash"]
     args: ["/tester/run.sh"]
+    # command: ["/tools/bats/bats", "-t", "/tester/run.sh"]
   restartPolicy: Never
   volumes:
+  - name: secret-volume
+    secret:
+      secretName: "{{ template "neo4j.secrets.fullname" . }}"
+      items:
+      - key: neo4j-password
+        path: neo4j-password
   - name: config-volume
     configMap:
       name: "{{ .Release.Name }}-test"
@@ -34,64 +45,122 @@ data:
     set -x
     host="{{ .Release.Name }}-neo4j.{{ .Release.Namespace }}.svc.cluster.local"
     echo "HOST $host"
-    endpoint="http://$host:{{ .Values.service.port }}"
+    # This endpoint proves availability of the overall service
+    endpoint="http://$host:{{ .Values.ports.http }}"
     echo "ENDPOINT $endpoint"
-    NEO4J_SECRETS_PASSWORD=$(kubectl get secret -n "{{ .Release.Namespace }}" "{{ .Release.Name }}-neo4j-secrets" -o jsonpath='{.data.neo4j-password}' | base64 --decode)        
+    NEO4J_SECRETS_PASSWORD=$(cat /secret/neo4j-password)
     auth="neo4j:${NEO4J_SECRETS_PASSWORD}"
     echo "AUTH $auth"
-    CORE_REPLICAS=3
-    @test "Testing Neo4j cluster has quorum" {
-      echo "checking if the cluster is up with $auth and $endpoint"
-      path="data"
-      for id in $(seq 0 $((CORE_REPLICAS - 1))); do
-        url="$endpoint/db/${path}"
-        attempts=10
-        attempt=0
-        while true; do
-          attempt=$[$attempt + 1]
-          echo "Try $attempt: Connecting to $endpoint/db/${path}"
-          run wget ${url} -qO- 2>&1
-          echo "Exit code: $status"
-          [ $status -eq 0 ] && break
-          [ "${attempt}" -ge "${attempts}" ] && exit 1
-          sleep 5
-        done
-      done
-    }
-    @test "Testing Neo4j core servers are available" {
-      echo "checking if nodes are available"
-      path="manage/server/core/available"
-      for id in $(seq 0 $((CORE_REPLICAS - 1))); do
-        url="$endpoint/db/${path}"
-        attempts=10
-        attempt=0
-        while true; do
-          attempt=$[$attempt + 1]
-          echo "Try $attempt: Connecting to $url with $auth"
-          response=$(wget ${url} -qO- 2>&1)
-          [ "$response" = "true" ] && break
-          [ "${attempt}" -ge "${attempts}" ] && exit 1
-          sleep 5
-        done
-      done
-    }
-    @test "REST API comes alive" {    
-      while true; do
-        response=$(curl -v $endpoint)
-        if [ $response -eq 0 ] ; then
-          break
-        fi
-        sleep 5
-      done    
-      echo GET $endpoint
-      http_status_code=$(curl -o /dev/null -s -w "%{http_code}\n" $endpoint)
-      echo "Expected http status code: 200"
-      echo "Actual http status code: $http_status_code"
-      if [[ "$http_status_code" == "200" ]]; then
-        echo SUCCESS
-      else
-        echo FAILURE
+    CORES={{ .Values.coreServers }}
+    READ_REPLICAS={{ .Values.readReplicaServers }}
+    echo "CORES $CORES"
+    echo "RRs $READ_REPLICAS"
+    echo "SECRETS VOLUME"
+    ls -l /
+    cd /secret && pwd && ls * && grep "" *
+
+    # When test resources are deployed cluster hasn't had a chance to form yet.
+    # This polls in a loop waiting for cluster to become available, and gives up/fails
+    # tests if it doesn't work within attempts.
+    attempt=0
+    attempts=20
+
+    while true; do
+      attempt=$[$attempt + 1]
+      curl -s -I $endpoint/ | grep "200 OK"
+      if [ $? -eq 0 ] ; then
+        echo "✔️ Neo4j is up at attempt $attempt; HTTP port {{ .Values.ports.http }}"
+        break
+      fi
+
+      if [ $attempt -ge "$attempts" ]; then
+        echo "❌ REST API seems not to be coming up, giving up after $attempts attempts"
         exit 1
+      fi
+
+      echo "Sleeping; not up yet after $attempt attempts"
+      sleep 5
+    done
+
+    function succeed {
+      echo "✔️  $1"
+    }
+
+    function fail {
+      echo "❌ $1"
+      echo "Additional information: " "$2"
+      exit 1
+    }
+
+    function cypher {
+      echo $1 | cypher-shell --encryption true -u neo4j -a "$host:{{ .Values.ports.bolt }}" -p "$NEO4J_SECRETS_PASSWORD"
+    }
+
+    function runtest {
+      echo "Running $1"
+      echo "$2" | cypher-shell --encryption true -u neo4j -a "$host:{{ .Values.ports.bolt }}" -p "$NEO4J_SECRETS_PASSWORD"
+      if [ $? -eq 0 ] ; then  
+        succeed "$1"
+      else
+        fail "$1"
       fi
     }
 
+    test="HTTPS is available, port {{ .Values.ports.https }}"
+    curl --insecure https://$host:{{ .Values.ports.https }}/
+    if [ $? -eq 0 ] ; then
+      succeed "$test"
+    else
+      fail "$test"
+    fi
+
+    runtest "Bolt is available, port 7687"                "RETURN 'yes';"
+    runtest "Basic read queries, encrypted connection"    "MATCH (n) RETURN COUNT(n);"
+    runtest "Database is in clustered mode"               "CALL dbms.cluster.overview();" 
+    runtest "Cluster accepts writes"                      'CREATE (t:TestNode) RETURN count(t);'
+
+    # Data from server on cluster topology.
+    topology=$(cypher "CALL dbms.cluster.overview();")
+
+    # LEADERS
+    leaders=$(echo $topology | grep -o LEADER | wc -l)
+    test="Cluster has 1 leader"
+    if [ $leaders -eq 1 ] ; then
+      succeed "$test"
+    else 
+      fail "$test" "$leaders leaders"
+    fi
+
+    # FOLLOWERS
+    followers=$(echo $topology | grep -o FOLLOWER | wc -l)
+    test="Cluster has 1-CORES followers"
+    if [ $followers -eq $((CORES-1)) ] ; then
+      succeed "$test"
+    else
+      fail "$test" "$followers followers"
+    fi
+
+    # REPLICAS
+    read_replicas=$(echo $topology | grep -o READ_REPLICA | wc -l)
+    test="Cluster has $READ_REPLICAS read replicas"
+    if [ $read_replicas -eq $READ_REPLICAS ] ; then
+      succeed "$test"
+    else
+      fail "$test" "$read_replicas replicas"
+    fi
+
+    #for id in $(seq 0 $((CORES - 1))); do
+    #  core_host="{{ .Release.Name }}-neo4j-core-$id.{{ .Release.Name }}-neo4j.{{ .Release.Namespace }}.svc.cluster.local"
+    #  core_endpoint="http://$core_host:{{ .Values.ports.http }}/"
+    #  test="Core host $id of $CORES -- $core_endpoint is available"
+    #  output=$(curl -s -I "$core_endpoint" 2>&1)
+    #  curl -s -I "$core_endpoint" | grep "200 OK"
+    #  if [ $? -eq 0 ] ; then
+    #    succeed "$test"
+    #  else
+    #    fail "$test" "$output"
+    #  fi
+    #done
+
+    echo "All good; testing completed"
+    exit 0
