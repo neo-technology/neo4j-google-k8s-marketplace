@@ -30,6 +30,8 @@ make app/build
 Using the marketplace-k8s-app-tools script to launch the deployment container mimics how google's
 k8s marketplace will do it live.
 
+The make task `make app/install` should work, below is a variant with what that does:
+
 ```
 DEPLOYER_IMAGE=gcr.io/neo4j-k8s-marketplace-public/neo4j-deployer:latest
 APP_INSTANCE_NAME="neo4j-$(head -c 3 /dev/urandom | base64 - | sed 's/[^A-Za-z0-9]/x/g' | tr '[:upper:]' '[:lower:]')"
