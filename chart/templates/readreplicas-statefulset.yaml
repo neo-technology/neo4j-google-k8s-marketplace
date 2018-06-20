@@ -54,8 +54,10 @@ spec:
             export NEO4J_causal__clustering_discovery__advertised__address=$(hostname -f):5000
             export NEO4J_causal__clustering_transaction__advertised__address=$(hostname -f):6000
             export NEO4J_causal__clustering_raft__advertised__address=$(hostname -f):7000
+            export NEO4J_dbms_connector_http_listen__address=0.0.0.0:{{ .Values.ports.bolt }}
+            export NEO4J_dbms_connector_http_listen__address=0.0.0.0:{{ .Values.ports.http }}
             export NEO4J_dbms_connector_https_enabled=true
-            export NEO4J_dbms_connector_https_listen__address=:7473
+            export NEO4J_dbms_connector_https_listen__address=0.0.0.0:{{ .Values.ports.https }}
 
             if [ "${AUTH_ENABLED:-}" == "true" ]; then
               export NEO4J_AUTH="neo4j/${NEO4J_SECRETS_PASSWORD}"
