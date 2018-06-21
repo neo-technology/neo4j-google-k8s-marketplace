@@ -64,6 +64,12 @@ marketplace tools repo; consult app.Makefile in that repo for full details.
 Behind the scenes, it invokes `driver.sh` to deploy, wait for successful deploy,
 and launch the testing container.
 
+## Backups
+
+- `make app/backup` to build the relevant docker container
+- Customize `backup/backup.yaml` as appropriate
+- kubectl apply -f backup/backup.yaml
+
 ## Running from your Local Machine
 
 These instructions mimic what the deployment container does.

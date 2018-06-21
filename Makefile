@@ -32,11 +32,13 @@ APP_TEST_PARAMETERS ?= { \
   "tester.image": "$(APP_TESTER_IMAGE)" \
 }
 
-app/build:: .build/neo4j .build/deployer .build/tester
+app/build:: .build/neo4j .build/deployer .build/tester .build/backup
 
 app/build-test:: app/build .build/tester
 
 app/image:: .build/neo4j
+
+app/backup:: .build/backup
 
 .build/deployer: schema.yaml \
 				 deployer/* \
@@ -67,6 +69,16 @@ app/image:: .build/neo4j
 	   -f apptest/tester/Dockerfile \
 	   .
 	docker push "$(APP_TESTER_IMAGE)"
+	@date >> "$@"
+
+APP_BACKUP_IMAGE=$(REGISTRY)/neo4j-backup:latest
+
+.build/backup: backup/*
+	docker build \
+		--tag "$(APP_BACKUP_IMAGE)" \
+		-f backup/Dockerfile \
+		.
+	docker push "$(APP_BACKUP_IMAGE)"
 	@date >> "$@"
 
 # Simulate building of primary app image. Actually just copying public image to
