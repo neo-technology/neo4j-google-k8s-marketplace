@@ -3,6 +3,7 @@ kind: StatefulSet
 metadata:
   name: "{{ template "neo4j.core.fullname" . }}"
 spec:
+  podManagementPolicy: Parallel
   serviceName: {{ template "neo4j.fullname" . }}
   replicas: {{ .Values.coreServers }}
   selector:
@@ -62,6 +63,8 @@ spec:
             export NEO4J_dbms_connector_http_listen__address=0.0.0.0:{{ .Values.ports.http }}
             export NEO4J_dbms_connector_https_enabled=true            
             export NEO4J_dbms_connector_https_listen__address=0.0.0.0:{{ .Values.ports.https }}
+            export NEO4J_dbms_backup_enabled=true
+            export NEO4J_dbms_backup_address=0.0.0.0:{{ .Values.ports.backup }}
 
             if [ "${AUTH_ENABLED:-}" == "true" ]; then
               export NEO4J_AUTH="neo4j/${NEO4J_SECRETS_PASSWORD}"
@@ -93,6 +96,15 @@ spec:
           {{- end }}
         - name: plugins
           mountPath: /plugins
+        #readinessProbe:
+        #  httpGet:
+        #    path: /
+        #    port: {{ .Values.ports.http }}
+        #    httpHeaders:
+        #    - name: X-Custom-Header
+        #      value: "YouThere?"
+        #  initialDelaySeconds: 30
+        #  periodSeconds: 3
         resources:
           requests:
             cpu: "{{ .Values.cpuRequest }}"
