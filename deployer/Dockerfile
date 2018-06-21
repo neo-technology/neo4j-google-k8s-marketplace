@@ -20,14 +20,8 @@ RUN cat /tmp/schema.yaml \
     > /tmp/schema.yaml.new \
     && mv /tmp/schema.yaml.new /tmp/schema.yaml
 
-#RUN cat /tmp/schema.yaml \
-#    | env -i "REGISTRY=$REGISTRY" "TAG=$TAG" envsubst \
-#    > /tmp/schema.yaml.subst
-
 FROM gcr.io/google-marketplace-tools/k8s/deployer_helm
 COPY --from=build /tmp/neo4j.tar.gz /data/chart/
 COPY --from=build /tmp/test/neo4j.tar.gz /data-test/chart/
 COPY apptest/deployer/schema.yaml /data-test/
 COPY --from=build /tmp/schema.yaml /data/
-
-# COPY --from=build /tmp/schema.yaml.subst /data/schema.yaml
