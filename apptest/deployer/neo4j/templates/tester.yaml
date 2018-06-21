@@ -19,7 +19,6 @@ spec:
       readOnly: true
     command: ["bash"]
     args: ["/tester/run.sh"]
-    # command: ["/tools/bats/bats", "-t", "/tester/run.sh"]
   restartPolicy: Never
   volumes:
   - name: secret-volume
@@ -48,6 +47,7 @@ data:
     # This endpoint proves availability of the overall service
     endpoint="http://$host:{{ .Values.ports.http }}"
     echo "ENDPOINT $endpoint"
+    # Mounted secret
     NEO4J_SECRETS_PASSWORD=$(cat /secret/neo4j-password)
     auth="neo4j:${NEO4J_SECRETS_PASSWORD}"
     echo "AUTH $auth"
@@ -55,15 +55,12 @@ data:
     READ_REPLICAS={{ .Values.readReplicaServers }}
     echo "CORES $CORES"
     echo "RRs $READ_REPLICAS"
-    echo "SECRETS VOLUME"
-    ls -l /
-    cd /secret && pwd && ls * && grep "" *
 
     # When test resources are deployed cluster hasn't had a chance to form yet.
     # This polls in a loop waiting for cluster to become available, and gives up/fails
     # tests if it doesn't work within attempts.
     attempt=0
-    attempts=20
+    attempts=100
 
     while true; do
       attempt=$[$attempt + 1]
@@ -82,6 +79,11 @@ data:
       sleep 5
     done
 
+    # Pass index ID to get hostname for that pod.
+    function core_hostname {
+      echo "{{ .Release.Name }}-neo4j-core-$1.{{ .Release.Name }}-neo4j.{{ .Release.Namespace }}.svc.cluster.local"
+    }
+
     function succeed {
       echo "✔️  $1"
     }
@@ -93,12 +95,25 @@ data:
     }
 
     function cypher {
-      echo $1 | cypher-shell --encryption true -u neo4j -a "$host:{{ .Values.ports.bolt }}" -p "$NEO4J_SECRETS_PASSWORD"
+      # Use routing driver by default, send query wherever.
+      DEFAULT_ENDPOINT="bolt+routing://$host:{{ .Values.ports.bolt}}"
+
+      # If caller specified, use a specific endpoint to route a query to just one node.
+      ENDPOINT=${2:-$DEFAULT_ENDPOINT}
+
+      echo $1 | cypher-shell --encryption true -u neo4j -a "$ENDPOINT" -p "$NEO4J_SECRETS_PASSWORD"
     }
 
     function runtest {
-      echo "Running $1"
-      echo "$2" | cypher-shell --encryption true -u neo4j -a "$host:{{ .Values.ports.bolt }}" -p "$NEO4J_SECRETS_PASSWORD"
+      # Use routing driver by default, send query wherever.
+      DEFAULT_ENDPOINT="bolt+routing://$host:{{ .Values.ports.bolt}}"
+
+      # If caller specified, use a specific endpoint to route a query to just one node.
+      ENDPOINT=${3:-$DEFAULT_ENDPOINT}
+
+      echo "Running $1 against $ENDPOINT"
+      cypher "$2" "$3"
+
       if [ $? -eq 0 ] ; then  
         succeed "$1"
       else
@@ -114,10 +129,10 @@ data:
       fail "$test"
     fi
 
-    runtest "Bolt is available, port 7687"                "RETURN 'yes';"
-    runtest "Basic read queries, encrypted connection"    "MATCH (n) RETURN COUNT(n);"
-    runtest "Database is in clustered mode"               "CALL dbms.cluster.overview();" 
-    runtest "Cluster accepts writes"                      'CREATE (t:TestNode) RETURN count(t);'
+    runtest "Bolt is available, port {{ .Values.ports.bolt }}" "RETURN 'yes';"
+    runtest "Basic read queries, encrypted connection"         "MATCH (n) RETURN COUNT(n);"
+    runtest "Database is in clustered mode"                    "CALL dbms.cluster.overview();" 
+    runtest "Cluster accepts writes"                           'CREATE (t:TestNode) RETURN count(t);'
 
     # Data from server on cluster topology.
     topology=$(cypher "CALL dbms.cluster.overview();")
@@ -149,18 +164,49 @@ data:
       fail "$test" "$read_replicas replicas"
     fi
 
-    #for id in $(seq 0 $((CORES - 1))); do
-    #  core_host="{{ .Release.Name }}-neo4j-core-$id.{{ .Release.Name }}-neo4j.{{ .Release.Namespace }}.svc.cluster.local"
-    #  core_endpoint="http://$core_host:{{ .Values.ports.http }}/"
-    #  test="Core host $id of $CORES -- $core_endpoint is available"
-    #  output=$(curl -s -I "$core_endpoint" 2>&1)
-    #  curl -s -I "$core_endpoint" | grep "200 OK"
-    #  if [ $? -eq 0 ] ; then
-    #    succeed "$test"
-    #  else
-    #    fail "$test" "$output"
-    #  fi
-    #done
+    # Each core is individually up.
+    for id in $(seq 0 $((CORES - 1))); do
+      core_host=$(core_hostname $id)
+      #core_endpoint="http://$core_host:{{ .Values.ports.http }}/"
+      core_endpoint="$core_host:{{ .Values.ports.bolt }}"
+      test="Core host $id of $CORES -- $core_endpoint is available"
+      runtest "$test" "MATCH (n) RETURN COUNT(n);" "$core_endpoint"
+      #output=$(curl -s -I "$core_endpoint" 2>&1)
+      #curl -s -I "$core_endpoint" | grep "200 OK"
+      #if [ $? -eq 0 ] ; then
+      #  succeed "$test"
+      #else
+      #  fail "$test" "$output"
+      #fi
+    done
+
+    # Test for data replication.    
+    runtest "Sample canary write" 'CREATE (c:Canary) RETURN count(c);'
+    echo "Sleeping a few seconds to permit replication"
+    sleep 5
+
+    # Check each core, count the canary writes. They should all agree.
+    for id in $(seq 0 $((CORES - 1))); do
+      core_host=$(core_hostname $id)
+      # Use bolt driver, not routing driver, to ensure that test verifies data
+      # exists on this host.
+      core_endpoint="bolt://$core_host:{{ .Values.ports.bolt }}"
+      test "Core host $id has the canary write"
+      result=$(cypher "MATCH (c:Canary) WITH count(c) as x where x = 1 RETURN x;" "$core_endpoint")
+      exit_code=$?
+      if [ $exit_code -eq 0 ] ; then
+        # Check that the data is there.
+        found_results=$(echo "$result" | grep -o 1 | wc -l)
+
+        if [ $found_results -eq 1 ] ; then
+          succeed "$test"
+        else 
+          fail "$test" "Canary read did not return data -- $found_results found results from $result"
+        fi
+      else
+        fail "$test" "Canary read failed to execute -- exit code $exit_code / RESULT -- $result"
+      fi
+    done
 
     echo "All good; testing completed"
     exit 0
