@@ -5,10 +5,10 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: stress-testing
+  name: neo4j-stress-test
 spec:
   containers:
-    - name: stress-testing
+    - name: neo4j-stress-test
       image: gcr.io/neo4j-k8s-marketplace-public/neo4j/stress-testing:latest
       env:
         - name: NEO4J_URI
