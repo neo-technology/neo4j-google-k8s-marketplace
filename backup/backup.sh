@@ -44,11 +44,17 @@ neo4j-admin backup \
     --name="$BACKUP_SET" \
     --pagecache=$PAGE_CACHE
 
+echo "Backup size:"
+du -hs "/data/$BACKUP_SET"
+
 echo "Tarring -> /data/$BACKUP_SET.tar"
 tar -cvf "/data/$BACKUP_SET.tar" "/data/$BACKUP_SET" --remove-files
 
 echo "Zipping -> /data/$BACKUP_SET.tar.gz"
 gzip -9 "/data/$BACKUP_SET.tar"
+
+echo "Zipped backup size:"
+du -hs "/data/$BACKUP_SET.tar.gz"
 
 echo "Pushing /data/$BACKUP_SET.tar.gz -> $BUCKET"
 gsutil cp "/data/$BACKUP_SET.tar.gz" "$BUCKET"
