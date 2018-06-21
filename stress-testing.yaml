@@ -1,0 +1,22 @@
+# Sample pod to be applied manually when desired
+# Executes a load test against the DB when tailored to the right endpoint.
+# WARNING -- this will modify data in an instance, intended for testing
+# DBs only.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: stress-testing
+spec:
+  containers:
+    - name: stress-testing
+      image: gcr.io/neo4j-k8s-marketplace-public/neo4j/stress-testing:latest
+      env:
+        - name: NEO4J_URI
+          value: "bolt+routing://$APP_NAME-neo4j-core-0.$APP_NAME-neo4j.$NAMESPACE.svc.cluster.local"
+        - name: NEO4J_USERNAME
+          value: neo4j
+        - name: NEO4J_PASSWORD
+          value: secret
+        - name: CONCURRENCY
+          value: "10"
+
