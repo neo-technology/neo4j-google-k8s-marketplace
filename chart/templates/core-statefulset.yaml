@@ -38,7 +38,7 @@ spec:
           - name: NEO4J_causal__clustering_minimum__core__cluster__size__at__formation
             value: "3"
           - name: NEO4J_causal__clustering_minimum__core__cluster__size__at__runtime
-            value: "2"
+            value: "3"
           - name: NEO4J_causal__clustering_initial__discovery__members
             value: "{{ template "neo4j.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:5000"
           {{- if .Values.authEnabled }}
@@ -65,6 +65,8 @@ spec:
             export NEO4J_dbms_connector_https_listen__address=0.0.0.0:{{ .Values.ports.https }}
             export NEO4J_dbms_backup_enabled=true
             export NEO4J_dbms_backup_address=0.0.0.0:{{ .Values.ports.backup }}
+
+            export NEO4J_dbms_security_procedures_unrestricted="apoc.*"
 
             if [ "${AUTH_ENABLED:-}" == "true" ]; then
               export NEO4J_AUTH="neo4j/${NEO4J_SECRETS_PASSWORD}"

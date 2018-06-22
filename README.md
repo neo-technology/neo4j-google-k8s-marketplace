@@ -34,11 +34,11 @@ The make task `make app/install` should work, below is a variant with what that 
 
 ```
 DEPLOYER_IMAGE=gcr.io/neo4j-k8s-marketplace-public/neo4j-deployer:latest
-APP_INSTANCE_NAME="neo4j-$(head -c 3 /dev/urandom | base64 - | sed 's/[^A-Za-z0-9]/x/g' | tr '[:upper:]' '[:lower:]')"
+APP_INSTANCE_NAME="neo4j-a$(head -c 2 /dev/urandom | base64 - | sed 's/[^A-Za-z0-9]/x/g' | tr '[:upper:]' '[:lower:]')"
 vendor/marketplace-k8s-app-tools/scripts/start.sh \
    --deployer=$DEPLOYER_IMAGE \
    --parameters='{"name":"'$APP_INSTANCE_NAME'","namespace":"default","coreServers":"3", "cpuRequest":"100m", "memoryRequest": "1Gi", "volumeSize": "2Gi", 
-   "readReplicaServers":"0", "reportingSecret": "XYZ", "image": "gcr.io/neo4j-k8s-marketplace-public/neo4j:3.4.1-enterprise"}'
+   "readReplicaServers":"1", "reportingSecret": "XYZ", "image": "gcr.io/neo4j-k8s-marketplace-public/neo4j:3.4.1-enterprise"}'
 ```
 
 Once deployed, the instructions above on getting logs and running cypher-shell still apply.

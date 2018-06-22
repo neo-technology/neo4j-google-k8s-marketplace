@@ -43,6 +43,7 @@ data:
   run.sh: |-
     set -x
     host="{{ .Release.Name }}-neo4j.{{ .Release.Namespace }}.svc.cluster.local"
+    replica_host="{{ .Release.Name }}-neo4j-readreplica-svc.{{ .Release.Namespace }}.svc.cluster.local"
     echo "HOST $host"
     # This endpoint proves availability of the overall service
     endpoint="http://$host:{{ .Values.ports.http }}"
@@ -84,12 +85,18 @@ data:
       echo "{{ .Release.Name }}-neo4j-core-$1.{{ .Release.Name }}-neo4j.{{ .Release.Namespace }}.svc.cluster.local"
     }
 
+    function replica_hostname {
+      echo "{{ .Release.Name }}-replica-$1.{{ .Release.Name }}-readreplica.{{ .Release.Namespace }}.svc.cluster.local"
+    }
+
+    test_index=0
+
     function succeed {
-      echo "✔️  $1"
+      echo "✔️  Test $test_index: $1"
     }
 
     function fail {
-      echo "❌ $1"
+      echo "❌ Test $test_index: $1"
       echo "Additional information: " "$2"
       exit 1
     }
@@ -101,10 +108,11 @@ data:
       # If caller specified, use a specific endpoint to route a query to just one node.
       ENDPOINT=${2:-$DEFAULT_ENDPOINT}
 
-      echo $1 | cypher-shell --encryption true -u neo4j -a "$ENDPOINT" -p "$NEO4J_SECRETS_PASSWORD"
+      echo "$1" | cypher-shell --encryption true -u neo4j -a "$ENDPOINT" -p "$NEO4J_SECRETS_PASSWORD"
     }
 
     function runtest {
+      test_index=$[$test_index + 1]
       # Use routing driver by default, send query wherever.
       DEFAULT_ENDPOINT="bolt+routing://$host:{{ .Values.ports.bolt}}"
 
@@ -112,12 +120,13 @@ data:
       ENDPOINT=${3:-$DEFAULT_ENDPOINT}
 
       echo "Running $1 against $ENDPOINT"
-      cypher "$2" "$3"
+      output=$(cypher "$2" "$3")
 
       if [ $? -eq 0 ] ; then  
         succeed "$1"
       else
-        fail "$1"
+        echo "Last output -- $output"
+        fail "$1" "$output"
       fi
     }
 
@@ -129,6 +138,8 @@ data:
       fail "$test"
     fi
 
+    cypher "CALL dbms.cluster.overview();"
+
     runtest "Bolt is available, port {{ .Values.ports.bolt }}" "RETURN 'yes';"
     runtest "Basic read queries, encrypted connection"         "MATCH (n) RETURN COUNT(n);"
     runtest "Database is in clustered mode"                    "CALL dbms.cluster.overview();" 
@@ -136,13 +147,14 @@ data:
 
     # Data from server on cluster topology.
     topology=$(cypher "CALL dbms.cluster.overview();")
+    echo "TOPOLOGY $topology"
 
     # LEADERS
     leaders=$(echo $topology | grep -o LEADER | wc -l)
     test="Cluster has 1 leader"
     if [ $leaders -eq 1 ] ; then
       succeed "$test"
-    else 
+    else
       fail "$test" "$leaders leaders"
     fi
 
@@ -164,23 +176,27 @@ data:
       fail "$test" "$read_replicas replicas"
     fi
 
-    # Each core is individually up.
+    # Each core is individually up and configured.
     for id in $(seq 0 $((CORES - 1))); do
       core_host=$(core_hostname $id)
-      #core_endpoint="http://$core_host:{{ .Values.ports.http }}/"
-      core_endpoint="$core_host:{{ .Values.ports.bolt }}"
+      core_endpoint="bolt://$core_host:{{ .Values.ports.bolt }}"
+
       test="Core host $id of $CORES -- $core_endpoint is available"
       runtest "$test" "MATCH (n) RETURN COUNT(n);" "$core_endpoint"
-      #output=$(curl -s -I "$core_endpoint" 2>&1)
-      #curl -s -I "$core_endpoint" | grep "200 OK"
-      #if [ $? -eq 0 ] ; then
-      #  succeed "$test"
-      #else
-      #  fail "$test" "$output"
-      #fi
+
+      test="Core host $id of $CORES -- $core_endpoint has APOC installed correctly"
+      runtest "$test" "RETURN apoc.version();" "$core_endpoint"
     done
 
-    # Test for data replication.    
+    # Replicas are up and configured.
+    replica_endpoint="bolt://$replica_host:{{ .Values.ports.bolt }}"
+    test="Replica host -- $replica_endpoint is available"
+    runtest "$test" "MATCH (n) RETURN COUNT(n);" "$replica_endpoint"
+
+    test="Replica host -- $replica_endpoint has APOC installed correctly"
+    runtest "$test" "RETURN apoc.version();" "$replica_endpoint"
+
+    # Test for data replication.
     runtest "Sample canary write" 'CREATE (c:Canary) RETURN count(c);'
     echo "Sleeping a few seconds to permit replication"
     sleep 5
@@ -191,7 +207,7 @@ data:
       # Use bolt driver, not routing driver, to ensure that test verifies data
       # exists on this host.
       core_endpoint="bolt://$core_host:{{ .Values.ports.bolt }}"
-      test "Core host $id has the canary write"
+      test="Core host $id has the canary write"
       result=$(cypher "MATCH (c:Canary) WITH count(c) as x where x = 1 RETURN x;" "$core_endpoint")
       exit_code=$?
       if [ $exit_code -eq 0 ] ; then
@@ -207,6 +223,21 @@ data:
         fail "$test" "Canary read failed to execute -- exit code $exit_code / RESULT -- $result"
       fi
     done
+
+    test="Read Replica has the canary write"
+    result=$(cypher "MATCH (c:Canary) WITH count(c) as x where x = 1 RETURN x;" "$replica_endpoint")
+    exit_code=$?
+    if [ $exit_code -eq 0 ] ; then
+      found_results=$(echo "$result" | grep -o 1 | wc -l)
+
+      if [ $found_results -eq 1 ] ; then
+        succeed "$test" "Canary read did not return data -- $found_results found results from $result"
+      else
+        fail "$test" 
+      fi
+    else
+      fail "$test" "Canary read did not return data -- exit code $exit_code / RESULT -- $result"
+    fi
 
     echo "All good; testing completed"
     exit 0

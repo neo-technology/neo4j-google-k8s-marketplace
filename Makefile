@@ -25,7 +25,9 @@ APP_PARAMETERS ?= { \
   "name": "$(APP_INSTANCE_NAME)", \
   "namespace": "$(NAMESPACE)", \
   "image": "$(APP_REGISTRY):$(APP_TAG)", \
-  "reportingSecret": "XYZ" \
+  "reportingSecret": "XYZ", \
+  "coreServers": "3", \
+  "readReplicaServers": "1" \
 }
 
 APP_TEST_PARAMETERS ?= { \
@@ -39,6 +41,8 @@ app/build-test:: app/build .build/tester
 app/image:: .build/neo4j
 
 app/backup:: .build/backup
+
+app/deployer:: .build/deployer
 
 .build/deployer: schema.yaml \
 				 deployer/* \
@@ -84,6 +88,9 @@ APP_BACKUP_IMAGE=$(REGISTRY)/neo4j-backup:latest
 # Simulate building of primary app image. Actually just copying public image to
 # local registry.
 .build/neo4j: .build/var/REGISTRY
+	docker pull appropriate/curl:latest
+	docker tag appropriate/curl:latest $(REGISTRY)/appropriate/curl:latest
+	docker push $(REGISTRY)/appropriate/curl:latest
     docker pull neo4j:3.4.1-enterprise
 	docker tag neo4j:3.4.1-enterprise $(REGISTRY)/$(APP_TAG)
 	docker push "$(APP_REGISTRY):$(APP_TAG)"
