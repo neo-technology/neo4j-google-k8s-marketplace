@@ -54,7 +54,7 @@ app/deployer:: .build/deployer
 				 | .build/neo4j
 	echo $(DEPLOYER_TAG)
 	docker build \
-	    --build-arg REGISTRY="$(REGISTRY)/neo4j" \
+	    --build-arg REGISTRY="$(REGISTRY)" \
 		--build-arg TAG="$(APP_TAG)" \
 	    --tag "$(APP_DEPLOYER_IMAGE)" \
 	    -f deployer/Dockerfile \
