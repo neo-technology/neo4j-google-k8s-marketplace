@@ -80,6 +80,12 @@ data:
       sleep 5
     done
 
+    # At this point the service endpoint proves that at least one host is up.
+    # Provide just a bit more time for all of them to finish coming up because we'll
+    # be testing them individually.
+    echo "Waiting for formation to finish"
+    sleep 10
+
     # Pass index ID to get hostname for that pod.
     function core_hostname {
       echo "{{ .Release.Name }}-neo4j-core-$1.{{ .Release.Name }}-neo4j.{{ .Release.Namespace }}.svc.cluster.local"
