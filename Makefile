@@ -4,9 +4,9 @@
 # is inherited.
 #################################################
 APP_NAME = neo4j
-REGISTRY = gcr.io/neo4j-k8s-marketplace-public
-APP_REGISTRY=$(REGISTRY)/neo4j
-APP_DEPLOYER_IMAGE=$(REGISTRY)/neo4j-deployer:latest
+REGISTRY = gcr.io/neo4j-k8s-marketplace-public/causal-cluster
+DEPLOYER_TAG=$(shell cat chart/Chart.yaml | grep version: | sed 's/.*: //g')
+APP_DEPLOYER_IMAGE=$(REGISTRY)/deployer:$(DEPLOYER_TAG)
 APP_TAG=3.4.1-enterprise
 tools_path = ./vendor/marketplace-k8s-app-tools
 
@@ -17,14 +17,14 @@ include $(tools_path)/ubbagent.Makefile
 include $(tools_path)/var.Makefile
 include $(tools_path)/app.Makefile
 
-APP_TESTER_IMAGE = $(REGISTRY)/neo4j-tester:latest
+APP_TESTER_IMAGE = $(REGISTRY)/tester:$(DEPLOYER_TAG)
 
 APP_INSTANCE_NAME ?= testrun
 
 APP_PARAMETERS ?= { \
   "name": "$(APP_INSTANCE_NAME)", \
   "namespace": "$(NAMESPACE)", \
-  "image": "$(APP_REGISTRY):$(APP_TAG)", \
+  "image": "$(REGISTRY)/neo4j:$(APP_TAG)", \
   "reportingSecret": "XYZ", \
   "coreServers": "3", \
   "readReplicaServers": "1" \
@@ -52,6 +52,7 @@ app/deployer:: .build/deployer
 				 .build/marketplace/deployer/helm \
 				 .build/var/REGISTRY \
 				 | .build/neo4j
+	echo $(DEPLOYER_TAG)
 	docker build \
 	    --build-arg REGISTRY="$(REGISTRY)/neo4j" \
 		--build-arg TAG="$(APP_TAG)" \
@@ -62,11 +63,6 @@ app/deployer:: .build/deployer
 	@date >> "$@"
 
 .build/tester: apptest/* .build/var/REGISTRY
-	#$(call print_target, $@)
-	#docker pull cosmintitei/bash-curl
-	#docker tag cosmintitei/bash-curl "$(APP_TESTER_IMAGE)"
-	#docker push "$(APP_TESTER_IMAGE)"
-	#@touch "$@"
 	$(call print_target, $@)
 	docker build \
 	   --tag "$(APP_TESTER_IMAGE)" \
@@ -75,7 +71,7 @@ app/deployer:: .build/deployer
 	docker push "$(APP_TESTER_IMAGE)"
 	@date >> "$@"
 
-APP_BACKUP_IMAGE=$(REGISTRY)/neo4j-backup:latest
+APP_BACKUP_IMAGE=$(REGISTRY)/backup:latest
 
 .build/backup: backup/*
 	docker build \
@@ -92,6 +88,6 @@ APP_BACKUP_IMAGE=$(REGISTRY)/neo4j-backup:latest
 	docker tag appropriate/curl:latest $(REGISTRY)/appropriate/curl:latest
 	docker push $(REGISTRY)/appropriate/curl:latest
     docker pull neo4j:3.4.1-enterprise
-	docker tag neo4j:3.4.1-enterprise $(REGISTRY)/$(APP_TAG)
-	docker push "$(APP_REGISTRY):$(APP_TAG)"
+	docker tag neo4j:3.4.1-enterprise $(REGISTRY)/neo4j:$(APP_TAG)
+	docker push "$(REGISTRY)/neo4j:$(APP_TAG)"
 	@touch "$@"

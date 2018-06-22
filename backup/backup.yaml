@@ -9,7 +9,7 @@ spec:
   restartPolicy: Never
   containers:
     - name: neo4j-backup
-      image: gcr.io/neo4j-k8s-marketplace-public/neo4j-backup:latest
+      image: gcr.io/neo4j-k8s-marketplace-public/causal-cluster/backup:latest
       env:
       - name: NEO4J_ADDR
         value: "neo4j-lsgm-neo4j-core-0.neo4j-lsgm-neo4j.default.svc.cluster.local"

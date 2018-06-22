@@ -33,12 +33,13 @@ k8s marketplace will do it live.
 The make task `make app/install` should work, below is a variant with what that does:
 
 ```
-DEPLOYER_IMAGE=gcr.io/neo4j-k8s-marketplace-public/neo4j-deployer:latest
+DEPLOYER_TAG=$(cat chart/Chart.yaml | grep version: | sed 's/.*: //g')
+DEPLOYER_IMAGE=gcr.io/neo4j-k8s-marketplace-public/causal-cluster/deployer:$DEPLOYER_TAG
 APP_INSTANCE_NAME="neo4j-a$(head -c 2 /dev/urandom | base64 - | sed 's/[^A-Za-z0-9]/x/g' | tr '[:upper:]' '[:lower:]')"
 vendor/marketplace-k8s-app-tools/scripts/start.sh \
    --deployer=$DEPLOYER_IMAGE \
    --parameters='{"name":"'$APP_INSTANCE_NAME'","namespace":"default","coreServers":"3", "cpuRequest":"100m", "memoryRequest": "1Gi", "volumeSize": "2Gi", 
-   "readReplicaServers":"1", "reportingSecret": "XYZ", "image": "gcr.io/neo4j-k8s-marketplace-public/neo4j:3.4.1-enterprise"}'
+   "readReplicaServers":"1", "reportingSecret": "XYZ", "image": "gcr.io/neo4j-k8s-marketplace-public/causal-cluster/neo4j:3.4.1-enterprise"}'
 ```
 
 Once deployed, the instructions above on getting logs and running cypher-shell still apply.
@@ -79,7 +80,7 @@ These instructions mimic what the deployment container does.
 helm template chart/ \
    --set namespace=default \
    --set reportingSecret=XYZ \
-   --set image=gcr.io/neo4j-k8s-marketplace-public/neo4j:3.4.1-enterprise \
+   --set image=gcr.io/neo4j-k8s-marketplace-public/causal-cluster/neo4j:3.4.1-enterprise \
    --set name=graph2 \
    --set neo4jPassword=mySecretPassword \
    --set authEnabled=true \
@@ -110,7 +111,7 @@ kubectl get secrets $APP_INSTANCE_NAME-neo4j-secrets -o yaml | grep neo4j-passwo
 export APP_INSTANCE_NAME=mygraph
 
 kubectl run -it --rm cypher-shell \
-   --image=gcr.io/neo4j-k8s-marketplace-public/neo4j:3.4.1-enterprise \
+   --image=gcr.io/neo4j-k8s-marketplace-public/causal-cluster/neo4j:3.4.1-enterprise \
    --restart=Never \
    --namespace=default \
    --command -- ./bin/cypher-shell -u neo4j \

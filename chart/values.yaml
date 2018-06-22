@@ -6,7 +6,7 @@
 name: "neo4j"
 
 # Specs for the Neo4j docker image
-image: "gcr.io/neo4j-k8s-marketplace-public/neo4j"
+image: "gcr.io/neo4j-k8s-marketplace-public/causal-cluster/neo4j"
 imageTag: "3.4.1-enterprise"
 ubbAgentImage: "gcr.io/neo4j-k8s-marketplace-public/ubbagent:neo4j"
 imagePullPolicy: "IfNotPresent"
@@ -22,10 +22,6 @@ authEnabled: true
 ## Specify password for neo4j user
 ## Defaults to a random 10-character alphanumeric string if not set and authEnabled is true
 # neo4jPassword:
-
-# Specs for the images used for running tests against the Helm package
-testImage: "gcr.io/neo4j-k8s-marketplace-public/markhneedham/k8s-kubectl"
-testImageTag: "master"
 
 ######################
 #### CORE SERVERS  ###
@@ -48,7 +44,7 @@ coreSidecarContainers: []
 #       cp apoc-3.2.0.3-all.jar /plugins/
 coreInitContainers:
  - name: init-plugins
-   image: "gcr.io/neo4j-k8s-marketplace-public/appropriate/curl"
+   image: "gcr.io/neo4j-k8s-marketplace-public/causal-cluster/appropriate/curl"
    imagePullPolicy: "IfNotPresent"
    volumeMounts:
    - name: plugins
@@ -96,7 +92,7 @@ readReplicaServers: 0
 #   value: extra-var-value-2
 readReplicaInitContainers:
  - name: init-plugins
-   image: "gcr.io/neo4j-k8s-marketplace-public/appropriate/curl"
+   image: "gcr.io/neo4j-k8s-marketplace-public/causal-cluster/appropriate/curl"
    imagePullPolicy: "IfNotPresent"
    volumeMounts:
    - name: plugins
