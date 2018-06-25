@@ -59,9 +59,9 @@ properties:
   volumeSize:
     title: Disk allocation to core nodes
     type: string
-    default: "2Gi"
+    default: "10Gi"
   volumeStorageClass:
-    title: Storage class for nodes, pd-ssd for SSD storage recommended.
+    title: Storage class for nodes, SSD storage recommended.
     type: string
     default: standard
     enum:
