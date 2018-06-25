@@ -11,7 +11,7 @@ imageTag: "3.4.1-enterprise"
 ubbAgentImage: "gcr.io/neo4j-k8s-marketplace-public/ubbagent:neo4j"
 imagePullPolicy: "IfNotPresent"
 # imagePullSecret: registry-secret
-acceptLicenseAgreement: "no"
+acceptLicenseAgreement: "yes"
 podDisruptionBudget: {}
   # minAvailable: 2
   # maxUnavailable: 1

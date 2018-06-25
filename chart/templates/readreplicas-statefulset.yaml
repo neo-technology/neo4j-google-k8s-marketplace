@@ -25,7 +25,7 @@ spec:
         imagePullPolicy: "{{ .Values.imagePullPolicy }}"
         env:
           - name: NEO4J_ACCEPT_LICENSE_AGREEMENT
-            value: "yes"          
+            value: "{{ .Values.acceptLicenseAgreement }}"
           - name: NEO4J_dbms_mode
             value: READ_REPLICA
           - name: NUMBER_OF_CORES
