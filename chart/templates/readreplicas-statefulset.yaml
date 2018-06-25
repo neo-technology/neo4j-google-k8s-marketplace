@@ -3,7 +3,7 @@ kind: StatefulSet
 metadata:
   name: "{{ template "neo4j.replica.fullname" . }}"
 spec:
-  serviceName: {{ template "neo4j.fullname" . }}-readreplica
+  serviceName: {{ template "neo4j.name" . }}-readreplica
   replicas: {{ .Values.readReplicaServers }}
   selector:
     matchLabels:
@@ -58,6 +58,9 @@ spec:
             export NEO4J_dbms_connector_http_listen__address=0.0.0.0:{{ .Values.ports.http }}
             export NEO4J_dbms_connector_https_enabled=true
             export NEO4J_dbms_connector_https_listen__address=0.0.0.0:{{ .Values.ports.https }}
+            export NEO4J_dbms_backup_enabled=true
+            export NEO4J_dbms_backup_address=0.0.0.0:{{ .Values.ports.backup }}            
+            export NEO4J_dbms_jvm_additional="-Dunsupported.dbms.udc.source=google-gke-readreplica"
 
             if [ "${AUTH_ENABLED:-}" == "true" ]; then
               export NEO4J_AUTH="neo4j/${NEO4J_SECRETS_PASSWORD}"
