@@ -1,5 +1,5 @@
 - Re-check helm resource limits & requests for core/read replicas.
 - Consider using persistent volumes on read replicas to speed start time/failover.
 - Look into restoring from an active backup if possible, to speed autoscaling.
-- Check with PM on acceptLicenseAgreement
 - Readiness check / liveness check on deploy
+- Check with Google on avaiability of GKE SSD storage class.
