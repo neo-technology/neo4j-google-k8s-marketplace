@@ -10,7 +10,7 @@ gcloud beta container clusters create $CLUSTER \
     --zone "$ZONE" \
     --project $PROJECT \
     --machine-type "n1-standard-1" \
-    --num-nodes "3" \
+    --num-nodes "4" \
     --max-nodes "10" \
     --enable-autoscaling
     
