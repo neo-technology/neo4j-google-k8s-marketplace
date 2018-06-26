@@ -45,9 +45,10 @@ app/image:  causal-cluster/*
 		-f causal-cluster/Dockerfile \
 		.
 	docker push $(REGISTRY):$(SOLUTION_VERSION)
-	docker pull appropriate/curl:latest
-	docker tag appropriate/curl:latest $(REGISTRY)/appropriate/curl:latest
-	docker push $(REGISTRY)/appropriate/curl:latest
+	# Not needed as plugins are included in solution container
+	#docker pull appropriate/curl:latest
+	#docker tag appropriate/curl:latest $(REGISTRY)/appropriate/curl:latest
+	#docker push $(REGISTRY)/appropriate/curl:latest
 
 app/backup:: .build/backup
 
