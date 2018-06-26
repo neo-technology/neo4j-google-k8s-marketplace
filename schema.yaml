@@ -13,7 +13,7 @@ properties:
       type: REPORTING_SECRET  
   image:
     type: string
-    default: $REGISTRY/neo4j:$TAG
+    default: $REGISTRY:$TAG
     x-google-marketplace:
       type: IMAGE
   ubbAgentImage:

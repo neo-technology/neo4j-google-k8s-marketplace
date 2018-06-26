@@ -17,7 +17,7 @@ metadata:
     component: core    
 spec:
   type: Neo4j Enterprise
-  versions: {{ .Values.imageTag }}
+  versions: {{ .Values.neo4jVersion }}
   description: A native graph database supporting advanced analytics and ACID transactions.
   maintainers:
   - name: Neo4j, Inc.

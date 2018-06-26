@@ -67,7 +67,7 @@ spec:
             export NEO4J_dbms_backup_address=0.0.0.0:{{ .Values.ports.backup }}
             export NEO4J_dbms_jvm_additional="-Dunsupported.dbms.udc.source=google-gke-core"
 
-            export NEO4J_dbms_security_procedures_unrestricted="apoc.*"
+            export NEO4J_dbms_security_procedures_unrestricted="apoc.*,algo.*"
 
             if [ "${AUTH_ENABLED:-}" == "true" ]; then
               export NEO4J_AUTH="neo4j/${NEO4J_SECRETS_PASSWORD}"
@@ -97,8 +97,11 @@ spec:
           {{- if .Values.volumeSubPath }}
           subPath: {{ .Values.volumeSubPath }}
           {{- end }}
-        - name: plugins
-          mountPath: /plugins
+        # Users may uncomment this and adjust that mount point to 
+        # attach custom plugins.  For now, plugins are injected into the
+        # solution container.
+        #- name: plugins
+        #  mountPath: /plugins
         #readinessProbe:
         #  httpGet:
         #    path: /

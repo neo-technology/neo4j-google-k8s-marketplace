@@ -5,9 +5,9 @@
 #################################################
 APP_NAME = neo4j
 REGISTRY = gcr.io/neo4j-k8s-marketplace-public/causal-cluster
-DEPLOYER_TAG=$(shell cat chart/Chart.yaml | grep version: | sed 's/.*: //g')
-APP_DEPLOYER_IMAGE=$(REGISTRY)/deployer:$(DEPLOYER_TAG)
-APP_TAG=3.4.1-enterprise
+SOLUTION_VERSION=$(shell cat chart/Chart.yaml | grep version: | sed 's/.*: //g')
+APP_DEPLOYER_IMAGE=$(REGISTRY)/deployer:$(SOLUTION_VERSION)
+NEO4J_VERSION=3.4.1-enterprise
 tools_path = ./vendor/marketplace-k8s-app-tools
 
 include $(tools_path)/crd.Makefile
@@ -17,14 +17,14 @@ include $(tools_path)/ubbagent.Makefile
 include $(tools_path)/var.Makefile
 include $(tools_path)/app.Makefile
 
-APP_TESTER_IMAGE = $(REGISTRY)/tester:$(DEPLOYER_TAG)
+APP_TESTER_IMAGE = $(REGISTRY)/tester:$(SOLUTION_VERSION)
 
 APP_INSTANCE_NAME ?= testrun
 
 APP_PARAMETERS ?= { \
   "name": "$(APP_INSTANCE_NAME)", \
   "namespace": "$(NAMESPACE)", \
-  "image": "$(REGISTRY)/neo4j:$(APP_TAG)", \
+  "image": "$(REGISTRY):$(SOLUTION_VERSION)", \
   "reportingSecret": "XYZ", \
   "coreServers": "3", \
   "readReplicaServers": "1" \
@@ -34,11 +34,20 @@ APP_TEST_PARAMETERS ?= { \
   "tester.image": "$(APP_TESTER_IMAGE)" \
 }
 
-app/build:: .build/neo4j .build/deployer .build/tester .build/backup
+app/build:: app/image .build/deployer .build/tester .build/backup
 
 app/build-test:: app/build .build/tester
 
-app/image:: .build/neo4j
+app/image:  causal-cluster/*
+	docker pull neo4j:$(NEO4J_VERSION)
+	docker build --tag $(REGISTRY):$(SOLUTION_VERSION) \
+		--build-arg NEO4J_VERSION="$(NEO4J_VERSION)" \
+		-f causal-cluster/Dockerfile \
+		.
+	docker push $(REGISTRY):$(SOLUTION_VERSION)
+	docker pull appropriate/curl:latest
+	docker tag appropriate/curl:latest $(REGISTRY)/appropriate/curl:latest
+	docker push $(REGISTRY)/appropriate/curl:latest
 
 app/backup:: .build/backup
 
@@ -50,12 +59,11 @@ app/deployer:: .build/deployer
 				 chart/templates/* \
 				 apptest/deployer/* \
 				 .build/marketplace/deployer/helm \
-				 .build/var/REGISTRY \
-				 | .build/neo4j
-	echo $(DEPLOYER_TAG)
+				 .build/var/REGISTRY
+	echo $(SOLUTION_VERSION)
 	docker build \
-	    --build-arg REGISTRY="$(REGISTRY)" \
-		--build-arg TAG="$(APP_TAG)" \
+	    --build-arg REGISTRY=$(REGISTRY) \
+		--build-arg TAG=$(SOLUTION_VERSION) \
 	    --tag "$(APP_DEPLOYER_IMAGE)" \
 	    -f deployer/Dockerfile \
 	    .
@@ -81,13 +89,3 @@ APP_BACKUP_IMAGE=$(REGISTRY)/backup:latest
 	docker push "$(APP_BACKUP_IMAGE)"
 	@date >> "$@"
 
-# Simulate building of primary app image. Actually just copying public image to
-# local registry.
-.build/neo4j: .build/var/REGISTRY
-	docker pull appropriate/curl:latest
-	docker tag appropriate/curl:latest $(REGISTRY)/appropriate/curl:latest
-	docker push $(REGISTRY)/appropriate/curl:latest
-    docker pull neo4j:3.4.1-enterprise
-	docker tag neo4j:3.4.1-enterprise $(REGISTRY)/neo4j:$(APP_TAG)
-	docker push "$(REGISTRY)/neo4j:$(APP_TAG)"
-	@touch "$@"

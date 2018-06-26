@@ -5,10 +5,13 @@
 
 name: "neo4j"
 
-# Specs for the Neo4j docker image
-image: "gcr.io/neo4j-k8s-marketplace-public/causal-cluster/neo4j"
-imageTag: "3.4.1-enterprise"
-ubbAgentImage: "gcr.io/neo4j-k8s-marketplace-public/ubbagent:neo4j"
+# Specs for the solution container.  See 'causal-cluster' directory.
+image: "gcr.io/neo4j-k8s-marketplace-public/causal-cluster:0.9.0"
+# Version for the solution container
+imageTag: "0.9.0"
+# Neo4j version the solution container is based on.
+neo4jVersion: "3.4.1"
+ubbAgentImage: "gcr.io/neo4j-k8s-marketplace-public/causal-cluster/ubbagent:neo4j"
 imagePullPolicy: "IfNotPresent"
 # imagePullSecret: registry-secret
 acceptLicenseAgreement: "yes"
@@ -42,19 +45,19 @@ coreSidecarContainers: []
 #     - |
 #       curl -L https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.2.0.3/apoc-3.2.0.3-all.jar -O
 #       cp apoc-3.2.0.3-all.jar /plugins/
-coreInitContainers:
- - name: init-plugins
-   image: "gcr.io/neo4j-k8s-marketplace-public/causal-cluster/appropriate/curl"
-   imagePullPolicy: "IfNotPresent"
-   volumeMounts:
-   - name: plugins
-     mountPath: /plugins
-   command:
-     - "/bin/sh"
-     - "-c"
-     - |
-       curl -L https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.4.0.1/apoc-3.4.0.1-all.jar -O
-       cp apoc-3.4.0.1-all.jar /plugins/
+coreInitContainers: []
+#  - name: init-plugins
+#    image: "gcr.io/neo4j-k8s-marketplace-public/causal-cluster/appropriate/curl"
+#    imagePullPolicy: "IfNotPresent"
+#    volumeMounts:
+#    - name: plugins
+#      mountPath: /plugins
+#    command:
+#      - "/bin/sh"
+#      - "-c"
+#      - |
+#        curl -L https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.4.0.1/apoc-3.4.0.1-all.jar -O
+#        cp apoc-3.4.0.1-all.jar /plugins/
 
 volumeMountPath: /data
 volumeAnnotations: {}
@@ -90,19 +93,19 @@ readReplicaServers: 0
 #   value: extra-var-value-1
 # - name: EXTRA_VAR_2
 #   value: extra-var-value-2
-readReplicaInitContainers:
- - name: init-plugins
-   image: "gcr.io/neo4j-k8s-marketplace-public/causal-cluster/appropriate/curl"
-   imagePullPolicy: "IfNotPresent"
-   volumeMounts:
-   - name: plugins
-     mountPath: /plugins
-   command:
-     - "/bin/sh"
-     - "-c"
-     - |
-       curl -L https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.4.0.1/apoc-3.4.0.1-all.jar -O
-       cp apoc-3.4.0.1-all.jar /plugins/
+readReplicaInitContainers: []
+#  - name: init-plugins
+#    image: "gcr.io/neo4j-k8s-marketplace-public/causal-cluster/appropriate/curl"
+#    imagePullPolicy: "IfNotPresent"
+#    volumeMounts:
+#    - name: plugins
+#      mountPath: /plugins
+#    command:
+#      - "/bin/sh"
+#      - "-c"
+#      - |
+#        curl -L https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.4.0.1/apoc-3.4.0.1-all.jar -O
+#        cp apoc-3.4.0.1-all.jar /plugins/
 
 cpuRequest: 200m
 cpuLimit: 8

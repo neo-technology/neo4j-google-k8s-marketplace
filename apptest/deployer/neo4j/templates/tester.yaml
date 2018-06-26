@@ -99,6 +99,7 @@ data:
 
     function succeed {
       echo "✔️  Test $test_index: $1"
+      test_index=$[$test_index + 1]
     }
 
     function fail {
@@ -118,7 +119,6 @@ data:
     }
 
     function runtest {
-      test_index=$[$test_index + 1]
       # Use routing driver by default, send query wherever.
       DEFAULT_ENDPOINT="bolt+routing://$host:{{ .Values.ports.bolt}}"
 
@@ -192,6 +192,9 @@ data:
 
       test="Core host $id of $CORES -- $core_endpoint has APOC installed correctly"
       runtest "$test" "RETURN apoc.version();" "$core_endpoint"
+
+      test="Core host $id of $CORES -- $core_endpoint has Graph Algorithms installed correctly"
+      runtest "$test" "CALL algo.list();" "$core_endpoint"
     done
 
     # Replicas are up and configured.
