@@ -80,7 +80,7 @@ app/deployer:: .build/deployer
 	docker push "$(APP_TESTER_IMAGE)"
 	@date >> "$@"
 
-APP_BACKUP_IMAGE=$(REGISTRY)/backup:latest
+APP_BACKUP_IMAGE=$(REGISTRY)/backup:$(SOLUTION_VERSION)
 
 .build/backup: backup/*
 	docker build \
