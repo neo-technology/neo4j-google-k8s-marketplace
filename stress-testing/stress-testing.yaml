@@ -9,7 +9,7 @@ metadata:
 spec:
   containers:
     - name: neo4j-stress-test
-      image: gcr.io/neo4j-k8s-marketplace-public/neo4j/stress-testing:latest
+      image: gcr.io/neo4j-k8s-marketplace-public/causal-cluster/stress-testing:0.9.0
       env:
         - name: NEO4J_URI
           value: "bolt+routing://$APP_NAME-neo4j-core-0.$APP_NAME-neo4j.$NAMESPACE.svc.cluster.local"
