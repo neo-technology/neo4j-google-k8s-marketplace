@@ -80,8 +80,8 @@ These instructions mimic what the deployment container does.
 helm template chart/ \
    --set namespace=default \
    --set reportingSecret=XYZ \
-   --set image=gcr.io/neo4j-k8s-marketplace-public/causal-cluster/neo4j:3.4.1-enterprise \
-   --set name=graph2 \
+   --set image=gcr.io/neo4j-k8s-marketplace-public/causal-cluster:3.4 \
+   --set name=my-graph \
    --set neo4jPassword=mySecretPassword \
    --set authEnabled=true \
    --set coreServers=3 \
@@ -89,7 +89,6 @@ helm template chart/ \
    --set cpuRequest=200m \
    --set memoryRequest=1Gi \
    --set volumeSize=2Gi \
-   --set volumeStorageClass=pd-standard \
    --set acceptLicenseAgreement=yes > expanded.yaml
 
 ### Applying to Cluster (Manual)
@@ -109,6 +108,8 @@ kubectl get secrets $APP_INSTANCE_NAME-neo4j-secrets -o yaml | grep neo4j-passwo
 
 ```
 # Assumes APP_INSTANCE_NAME, SOLUTION_VERSION are set.
+# When deploying from the marketplace, if you deploy as "mygraph",
+# then you will have a corresponding application/mygraph
 
 kubectl run -it --rm cypher-shell \
    --image=gcr.io/neo4j-k8s-marketplace-public/causal-cluster:$SOLUTION_VERSION \
@@ -124,45 +125,3 @@ kubectl run -it --rm cypher-shell \
 ```
 kubectl logs -l "app=neo4j,component=core"
 ```
-
-
-# User Guide
-
-## Overview
-
-General application overview, covering basic functions and configuration options. This section
-must also link to the published Cloud Launcher solution URL.
-
-## One time Setup
-
-- Configuring client tools
-- Installing the Application CRD
-- Acquiring and installing a license Secret from Cloud Launcher (if applicable)
-
-## Installation
-
-- Commands for installing the application
-- Passing parameters available in UI configuration
-- Pinning image references to immutable digests
-
-## Basic Usage
-
-- Connecting to an admin console (if applicable)
-- Connecting a client tool and running a sample command (if acclipable)
-- Modifying usernames and passwords
-- Enabling ingress and installing TLS certs (if applicable)
-
-## Backup and Restore
-
-- Backing up application state
-- Restoring application state from a backup
-
-## Image Updates
-
-Updating application images, assuming patch/minor updates
-
-## Scaling
-
-Scaling the application (if applicable)
-
-
