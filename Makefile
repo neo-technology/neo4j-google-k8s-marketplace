@@ -71,7 +71,7 @@ app/deployer:: .build/deployer
 	docker push "$(APP_DEPLOYER_IMAGE)"
 	@date >> "$@"
 
-.build/tester: apptest/* .build/var/REGISTRY
+.build/tester: apptest/deployer/* apptest/deployer/neo4j/* apptest/deployer/neo4j/templates/* .build/var/REGISTRY
 	$(call print_target, $@)
 	docker build \
 	   --tag "$(APP_TESTER_IMAGE)" \
