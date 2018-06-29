@@ -144,6 +144,7 @@ data:
       fail "$test"
     fi
 
+    echo "Basic topology upfront"
     cypher "CALL dbms.cluster.overview();"
 
     runtest "Bolt is available, port {{ .Values.ports.bolt }}" "RETURN 'yes';"

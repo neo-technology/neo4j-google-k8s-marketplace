@@ -6,12 +6,12 @@
 name: "neo4j"
 
 # Specs for the solution container.  See 'causal-cluster' directory.
-image: "gcr.io/neo4j-k8s-marketplace-public/causal-cluster:0.9.0"
+image: "gcr.io/neo4j-k8s-marketplace-public/causal-cluster:0.9.1"
 # Version for the solution container
-imageTag: "0.9.0"
+imageTag: "0.9.1"
 # Neo4j version the solution container is based on.
 neo4jVersion: "3.4.1"
-ubbAgentImage: "gcr.io/neo4j-k8s-marketplace-public/causal-cluster/ubbagent:0.9.0"
+ubbAgentImage: "gcr.io/neo4j-k8s-marketplace-public/causal-cluster/ubbagent:0.9.1"
 imagePullPolicy: "IfNotPresent"
 # imagePullSecret: registry-secret
 acceptLicenseAgreement: "yes"
