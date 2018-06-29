@@ -9,6 +9,7 @@ properties:
       type: NAMESPACE
   reportingSecret:
     type: string
+    default: "XYZ"
     x-google-marketplace:
       type: REPORTING_SECRET  
   image:
@@ -70,4 +71,3 @@ required:
 - name
 - namespace
 - image
-- reportingSecret
