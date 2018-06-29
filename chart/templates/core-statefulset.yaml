@@ -14,7 +14,6 @@ spec:
   template:
     metadata:
       labels:
-        heritage: {{ .Release.Service | quote }}
         release: {{ .Values.name | quote }}
         chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
         app: {{ template "neo4j.name" . }}

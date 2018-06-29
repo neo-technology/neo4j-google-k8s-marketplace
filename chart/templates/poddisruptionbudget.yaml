@@ -5,7 +5,6 @@ metadata:
   labels:
     app: {{ template "neo4j.name" . }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
-    heritage: {{ .Release.Service }}
     release: {{ .Release.Name }}
   name: {{ template "neo4j.fullname" . }}
 spec:

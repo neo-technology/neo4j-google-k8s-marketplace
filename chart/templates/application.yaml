@@ -10,7 +10,6 @@ metadata:
       Google does not offer support for this solution.
   labels:
     app.kubernetes.io/name: "{{ .Release.Name }}"
-    heritage: {{ .Release.Service | quote }}
     release: {{ .Values.name | quote }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
     app: {{ template "neo4j.name" . }}
