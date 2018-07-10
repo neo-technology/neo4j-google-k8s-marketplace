@@ -3,12 +3,14 @@
 This repository contains instructions and files necessary for running Neo4j Enterprise via Google's
 Hosted Kubernetes Marketplace.
 
-# Getting started
+If you would like setup instructions on how to install this from the GCP Marketplace, or on how to use the application once it is deployed, please consult the [user guide](user-guide/USER-GUIDE.md).
+
+# Maintenance & Development / Getting started
 
 ## Updating git submodules
 
-You can run the following commands to make sure submodules
-are populated with proper code.
+This repo contains git submodules corresponding to dependent Google code repos.
+You can run the following commands to make sure submodules are updated.
 
 ```shell
 git submodule sync --recursive
@@ -17,7 +19,15 @@ git submodule update --recursive --init --force
 
 ## Setting up the GKE environment
 
-See `setup-k8s.sh` for instructions.
+See `setup-k8s.sh` for instructions.  These steps are only to be followed for standing up a new testing cluster for the purpose of testing the code in this repo.
+
+## Overview
+
+The solution is composed of two core containers:
+- The deployment container, which expands the helm chart and applies resources to a running k8s cluster See the `deployer` and `chart` directories.
+- The test container, which is layered on top of the deploy container and runs functional tests to ensure a working neo4j cluster.  See the `apptest` directory.
+- A set of solution containers deployed under the neo4j GCR. The primary solution container shares the name with the solution (causal cluster)
+and tracks the 3.4 release series, but is not versioned more specifically than that.  See the `causal-cluster` directory.
 
 ## Building the Deployment Container
  
@@ -28,9 +38,9 @@ make app/build
 ## Running the Deployer Container
 
 Using the marketplace-k8s-app-tools script to launch the deployment container mimics how google's
-k8s marketplace will do it live.
+k8s marketplace does it with the UI.
 
-The make task `make app/install` should work, below is a variant with what that does:
+The make task `make app/install` accomplishes this, below is a variant with what that does:
 
 ```
 SOLUTION_VERSION=$(cat chart/Chart.yaml | grep version: | sed 's/.*: //g')
@@ -65,11 +75,13 @@ marketplace tools repo; consult app.Makefile in that repo for full details.
 Behind the scenes, it invokes `driver.sh` to deploy, wait for successful deploy,
 and launch the testing container.
 
-## Backups
+## How to run Backups
 
 - `make app/backup` to build the relevant docker container
 - Customize `backup/backup.yaml` as appropriate
 - kubectl apply -f backup/backup.yaml
+
+For further details, consult the README file in the backup directory.
 
 ## Running from your Local Machine
 
@@ -77,6 +89,7 @@ These instructions mimic what the deployment container does.
 
 ### Helm Expansion
 
+```
 helm template chart/ \
    --set namespace=default \
    --set reportingSecret=XYZ \
@@ -90,6 +103,7 @@ helm template chart/ \
    --set memoryRequest=1Gi \
    --set volumeSize=2Gi \
    --set acceptLicenseAgreement=yes > expanded.yaml
+```
 
 ### Applying to Cluster (Manual)
 
