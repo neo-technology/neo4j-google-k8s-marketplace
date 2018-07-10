@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+# This script is intended to be used for internal testing only, to create the artifacts necessary for 
+# testing and deploying this code in a sample GKE cluster.
 PROJECT=neo4j-k8s-marketplace-public
 CLUSTER=lab
 ZONE=us-central1-a
@@ -31,16 +34,6 @@ exec nohup kubectl proxy &
 
 # Create google-specific custom resources in the cluster.
 kubectl apply -f vendor/marketplace-k8s-app-tools/crd/app-crd.yaml
-
-# This is the method for a local helm install.
-# helm init
-# helm install --name mygraph ~/hax/charts/stable/neo4j \
-#    --set neo4jPassword=mySecretPassword \
-#    --set imageTag=$NEO4J_VERSION \
-#    --set authEnabled=true \
-#    --set coreServers=3 \
-#    --set readReplicaServers=0 \
-#    --set acceptLicenseAgreement=yes
 
 # kubectl expose pod neo4j-helm-neo4j-core-0 --port=7687 --target-port=7687 --name=core0-bolt --type=LoadBalancer
 # kubectl expose pod neo4j-helm-neo4j-core-1 --port=7687 --target-port=7687 --name=core1-bolt --type=LoadBalancer
