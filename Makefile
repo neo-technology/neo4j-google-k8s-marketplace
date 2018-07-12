@@ -25,7 +25,6 @@ APP_PARAMETERS ?= { \
   "name": "$(APP_INSTANCE_NAME)", \
   "namespace": "$(NAMESPACE)", \
   "image": "$(REGISTRY):$(SOLUTION_VERSION)", \
-  "reportingSecret": "XYZ", \
   "coreServers": "3", \
   "readReplicaServers": "1" \
 }

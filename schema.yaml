@@ -7,19 +7,9 @@ properties:
     type: string
     x-google-marketplace:
       type: NAMESPACE
-  reportingSecret:
-    type: string
-    default: "XYZ"
-    x-google-marketplace:
-      type: REPORTING_SECRET  
   image:
     type: string
     default: $REGISTRY:$TAG
-    x-google-marketplace:
-      type: IMAGE
-  ubbAgentImage:
-    type: string
-    default: gcr.io/neo4j-k8s-marketplace-public/causal-cluster/ubbagent:$TAG
     x-google-marketplace:
       type: IMAGE
   coreServers:
@@ -67,6 +57,16 @@ properties:
     default: standard
     enum:
     - "-"
+  # ubbAgentImage:
+  #   type: string
+  #   default: gcr.io/neo4j-k8s-marketplace-public/causal-cluster/ubbagent:$TAG
+  #   x-google-marketplace:
+  #     type: IMAGE
+  # reportingSecret:
+  #   type: string
+  #   default: "XYZ"
+  #   x-google-marketplace:
+  #     type: REPORTING_SECRET
 required:
 - name
 - namespace
