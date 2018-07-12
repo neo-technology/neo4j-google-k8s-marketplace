@@ -35,6 +35,14 @@ The following lists relevant configuration options for the deploy.  Only the nam
 * **memoryLimit**: Memory limit per pod
 * **volumeSize**:  Disk allocation to core nodes, for example “2Gi”
 
+### Hardware Allocation
+
+In order to ensure that Neo4j is deployable on basic/default GKE clusters, the default values for hardware requests have been made fairly low, and can be found in [schema.yaml](../schema.yaml).  The initial request is a fraction of a CPU per node, with 512MB of memory.  By default, the CPU upper limit is 8, and memory limit 512GB, which can be adjusted. 
+
+Sizing databases is ultimately something that should be done with the workload in mind.
+Consult Neo4j's [Performance Tuning Documentation](https://neo4j.com/developer/guide-performance-tuning/) for more information.  In general,
+heap size and page cache sizing are the most important places to start when tuning performance.
+
 ### Cluster Formation
 
 Immediately after deploying Neo4j on GKE, as the pods are created the cluster begins to form.  This may take up to 5 minutes, depending on a number of factors including how long it takes pods to get scheduled, and how many resources are associated with the pods.  While the cluster is forming, the Neo4j REST API and Bolt endpoints may not be available.   After a few minutes, bolt endpoints 
@@ -44,7 +52,7 @@ Immediately after deploying Neo4j on GKE, as the pods are created the cluster be
 After installing from GCP Marketplace, your cluster will start with a strong password that was randomly generated in the startup process.   This is stored in a kubernetes secret that is attached to your deployment.   Given a deployment named “my-graph”, you can find the password as the “neo4j-password” key under the mygraph-neo4j-secrets configuration item in Kubernetes.   The password is base64 encoded, and can be recovered as plaintext by authorized users with this command:
 
 ```
-kubectl get secrets mygraph-neo4j-secrets -o yaml | grep neo4j-password: | sed 's/neo4j-password: *//' | base64 -D
+kubectl get secrets my-graph-neo4j-secrets -o yaml | grep neo4j-password: | sed 's/neo4j-password: *//' | base64 -D
 ```
 
 This password applies for the base administrative user named “neo4j”.
@@ -53,7 +61,7 @@ This password applies for the base administrative user named “neo4j”.
 
 All neo4j cluster nodes inside of GKE will get private DNS names that you can use to access them.  Host names will be generated as follows.   `$NAMESPACE` refers to the kubernetes namespace used to deploy neo4j, and `$APP_INSTANCE_NAME` refers to the name it was deployed under.  The variable `$N` refers to the individual cluster node.  For clusters with 3 core nodes, $N could be 0, 1, or 2, and a total of three hostnames will be valid.
 
-- Core Host:  `$APP_INSTANCE_NAME-neo4j-core-$N.neo4j-ahwmx-neo4j.$NAMESPACE.svc.cluster.local`
+- Core Host:  `$APP_INSTANCE_NAME-neo4j-core-$N.$APP_INSTANCE_NAME-neo4j.$NAMESPACE.svc.cluster.local`
 - Read Replica Host: `$APP_INSTANCE_NAME-neo4j-replica-$N.neo4j-readreplica.$NAMESPACE.svc.cluster.local`
 
 ### Exposed Services
