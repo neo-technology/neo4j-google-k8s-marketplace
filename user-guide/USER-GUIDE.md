@@ -4,7 +4,7 @@
 
 Neo4j on GKE allows users to deploy multi-node Neo4j Enterprise Causal Clusters to GKE instances, with configuration options for the most common scenarios.  It represents a very rapid way to get started running the world leading native graph database on top of Kubernetes.
 
-This guide is intended only as a supplement to the [Neo4j Operations Manual](https://neo4j.com/docs/operations-manual/3.4/).   Neo4j on GKE is essentially a docker container based deploy of Neo4j Causal Cluster.  As such, all of the information in the Operations Manual applies to its operation, and this guide will focus only on kubernetes-specific concerns and GKE-specific concerns.
+This guide is intended only as a supplement to the [Neo4j Operations Manual](https://neo4j.com/docs/operations-manual/3.4/?ref=googlemarketplace).   Neo4j on GKE is essentially a docker container based deploy of Neo4j Causal Cluster.  As such, all of the information in the Operations Manual applies to its operation, and this guide will focus only on kubernetes-specific concerns and GKE-specific concerns.
 
 ## Licensing & Cost
 
@@ -24,11 +24,11 @@ The standard installation flow for Neo4j on GCP Marketplace is to simply follow 
 
 ### Key Configuration Options
 
-The following lists relevant configuration options for the deploy.  Only the name is strictly required, but users are strongly encouraged to consult [Neo4j’s System Requirements](https://neo4j.com/docs/operations-manual/current/installation/requirements/) and to tailor CPU, memory, and disk to the anticipated workload that will be used, in order to ensure best performance.
+The following lists relevant configuration options for the deploy.  Only the name is strictly required, but users are strongly encouraged to consult [Neo4j’s System Requirements](https://neo4j.com/docs/operations-manual/current/installation/requirements/?ref=googlemarketplace) and to tailor CPU, memory, and disk to the anticipated workload that will be used, in order to ensure best performance.
 
 * **name**:  the name of your cluster deployment
-* **coreServers**: (default: 3) the number of core servers in your cluster ([refer to Neo4j Causal Cluster architecture](https://neo4j.com/docs/operations-manual/current/clustering/introduction/)).  Core Servers' main responsibility is to safeguard data. The Core Servers do so by replicating all transactions using the Raft protocol.
-* **readReplicaServers**: (default: 0) the number of read replicas in your cluster ([refer to Neo4j Causal Cluster architecture](https://neo4j.com/docs/operations-manual/current/clustering/introduction/)).  Read Replicas' main responsibility is to scale out graph workloads (Cypher queries, procedures, and so on). Read Replicas act like caches for the data that the Core Servers safeguard, but they are not simple key-value caches. In fact Read Replicas are fully-fledged Neo4j databases capable of fulfilling arbitrary (read-only) graph queries and procedures.
+* **coreServers**: (default: 3) the number of core servers in your cluster ([refer to Neo4j Causal Cluster architecture](https://neo4j.com/docs/operations-manual/current/clustering/introduction/?ref=googlemarketplace)).  Core Servers' main responsibility is to safeguard data. The Core Servers do so by replicating all transactions using the Raft protocol.
+* **readReplicaServers**: (default: 0) the number of read replicas in your cluster ([refer to Neo4j Causal Cluster architecture](https://neo4j.com/docs/operations-manual/current/clustering/introduction/?ref=googlemarketplace)).  Read Replicas' main responsibility is to scale out graph workloads (Cypher queries, procedures, and so on). Read Replicas act like caches for the data that the Core Servers safeguard, but they are not simple key-value caches. In fact Read Replicas are fully-fledged Neo4j databases capable of fulfilling arbitrary (read-only) graph queries and procedures.
 * **cpuRequest**: CPU units to allocate to each pod.  Refer to [Managing computing resources on Kubernetes](https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/#meaning-of-cpu)
 * **memoryRequest**: Memory to allocate to each pod.
 * **cpuLimit**: CPU unit limit per pod
@@ -40,7 +40,7 @@ The following lists relevant configuration options for the deploy.  Only the nam
 In order to ensure that Neo4j is deployable on basic/default GKE clusters, the default values for hardware requests have been made fairly low, and can be found in [schema.yaml](../schema.yaml).  The initial request is a fraction of a CPU per node, with 512MB of memory.  By default, the CPU upper limit is 8, and memory limit 512GB, which can be adjusted. 
 
 Sizing databases is ultimately something that should be done with the workload in mind.
-Consult Neo4j's [Performance Tuning Documentation](https://neo4j.com/developer/guide-performance-tuning/) for more information.  In general,
+Consult Neo4j's [Performance Tuning Documentation](https://neo4j.com/developer/guide-performance-tuning/?ref=googlemarketplace) for more information.  In general,
 heap size and page cache sizing are the most important places to start when tuning performance.
 
 ### Cluster Formation
@@ -145,7 +145,7 @@ Becuase you're connecting to the leader, both reads and writes are possible.  Th
 Once connected via a cypher shell, you may use any of the existing procedures for user and role management provided as part of neo4j.
 Advanced/Custom Configuration of Neo4j
 
-The deploy for GKE is based on Neo4j’s public docker containers.  This means that [Neo4j documentation for Docker](https://neo4j.com/docs/operations-manual/current/installation/docker/) applies to the configuration of these pods.   In general, to specify an advanced configuration, users should edit the core-statefulset template, and the readreplias-statefulset template to specify environment variables passed to the Docker containers following the guidance of the Docker documentation listed above.
+The deploy for GKE is based on Neo4j’s public docker containers.  This means that [Neo4j documentation for Docker](https://neo4j.com/docs/operations-manual/current/installation/docker/?ref=googlemarketplace) applies to the configuration of these pods.   In general, to specify an advanced configuration, users should edit the core-statefulset template, and the readreplias-statefulset template to specify environment variables passed to the Docker containers following the guidance of the Docker documentation listed above.
 
 For example, to enable query logging in Neo4j, a user would need to set dbms.logs.query.enabled=true inside of the container.   To do that, a user would add the following environment variable `NEO4J_dbms_logs_query_enabled=true` to the relevant templates; these environment variables would be passed through to the docker container, which would configure neo4j appropriately.
 
@@ -153,7 +153,7 @@ For example, to enable query logging in Neo4j, a user would need to set dbms.log
 
 Provided with this distribution is a method of backing up a neo4j instance to Google Cloud Storage (GCS).  In the code repository, you can consult the documentation in the backup directory on how to use this container to take an active backup and save that data to GCS.  To do this, you will need to create a storage bucket, and create a service account with permissions on that storage bucket.   Backup may be run against a running cluster.
 
-For full details on all aspects of Backup and Restore, please consult the [Neo4j documentation on backups](https://neo4j.com/docs/operations-manual/current/backup/).
+For full details on all aspects of Backup and Restore, please consult the [Neo4j documentation on backups](https://neo4j.com/docs/operations-manual/current/backup/?ref=googlemarketplace).
 
 ### Image Updates
 
