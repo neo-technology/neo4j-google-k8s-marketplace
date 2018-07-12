@@ -10,10 +10,9 @@ metadata:
       Google does not offer support for this solution.
   labels:
     app.kubernetes.io/name: "{{ .Release.Name }}"
-    release: {{ .Values.name | quote }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
     app: {{ template "neo4j.name" . }}
-    component: core    
+    component: application    
 spec:
   type: Neo4j Enterprise
   versions: {{ .Values.neo4jVersion }}
@@ -23,8 +22,13 @@ spec:
     url: https://neo4j.com
   links:
   - description: Getting Started
-    # TODO
-    url: https://neo4j.com/developer/guide-cloud-deployment/
+    url: https://github.com/neo-technology/neo4j-google-k8s-marketplace/blob/master/user-guide/USER-GUIDE.md
+  - description: Neo4j Manual
+    url: https://neo4j.com/docs/developer-manual/current/introduction/
+  - description: Clustering Documentation
+    url: https://neo4j.com/docs/operations-manual/current/clustering/
+  - description: Support
+    url: https://support.neo4j.com/hc/en-us
   selector:
     matchLabels:
       app.kubernetes.io/name: "{{ .Release.Name }}"
@@ -53,4 +57,37 @@ spec:
     kind: RoleBinding
   - group: apps/v1
     kind: Service
-  
+  notes: |-
+    # Getting Started with Neo4j
+
+    The [Neo4j on GKE User Guide](https://github.com/neo-technology/neo4j-google-k8s-marketplace/blob/master/user-guide/USER-GUIDE.md) contains a lot of helpful hints on how to get started and use your database cluster.
+
+    Upon launching this application, it may take up to a few minutes for your cluster pods to be deployed, and for the database cluster to fully form and become available.
+
+    # Accessing Cypher Shell
+
+    Set `$APP_INSTANCE_NAME` to the name you deployed neo4j under, and the following command will
+    create a cypher shell instance attached to the cluster.
+
+    ```
+    APP_INSTANCE_NAME=my-graph
+    NEO4J_PASSWORD=$(kubectl get secrets $APP_INSTANCE_NAME-neo4j-secrets -o yaml | grep neo4j-password: | sed 's/neo4j-password: *//' | base64 -D)
+    kubectl run -it --rm cypher-shell \
+      --image=gcr.io/neo4j-k8s-marketplace-public/causal-cluster:3.4 \
+      --restart=Never \
+      --namespace=default \
+      --command -- ./bin/cypher-shell -u neo4j \
+      -p "$NEO4J_PASSWORD" \
+      -a $APP_INSTANCE_NAME-neo4j.default.svc.cluster.local
+    ```
+
+    # Accessing Neo4j Browser
+
+    ```
+    MY_NEO4J_CLUSTER_POD=$APP_INSTANCE_NAME-neo4j-core-0
+    kubectl port-forward $MY_NEO4J_CLUSTER_POD 7687:7687 7474:7474
+    ```
+
+    Then open a browser to `localhost:7474`.  **Make sure to adjust the server connect information to connect to localhost and not the default internal DNS**.
+
+    For more information, see the user guide.
