@@ -24,11 +24,11 @@ spec:
   - description: Getting Started
     url: https://github.com/neo-technology/neo4j-google-k8s-marketplace/blob/master/user-guide/USER-GUIDE.md
   - description: Neo4j Manual
-    url: https://neo4j.com/docs/developer-manual/current/introduction/
+    url: https://neo4j.com/docs/developer-manual/current/introduction/?ref=googlemarketplace
   - description: Clustering Documentation
-    url: https://neo4j.com/docs/operations-manual/current/clustering/
+    url: https://neo4j.com/docs/operations-manual/current/clustering/?ref=googlemarketplace
   - description: Support
-    url: https://support.neo4j.com/hc/en-us
+    url: https://support.neo4j.com/hc/en-us/?ref=googlemarketplace
   selector:
     matchLabels:
       app.kubernetes.io/name: "{{ .Release.Name }}"
