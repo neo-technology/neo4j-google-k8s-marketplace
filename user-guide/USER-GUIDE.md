@@ -108,7 +108,37 @@ Please consult standard Neo4j documentation on the many other usage options pres
 
 ### Neo4j Browser
 
-Neo4j browser is available on port 7474 of any of the hostnames described above.  However, because of the network environment that the cluster is in, access from external web browsers on the public internet is not supported out of the box.   See the “Security” and “Limitations” sections in this document for a discussion of the issues there, and for pointers on how you can configure your database with your organization’s DNS entries to enable this access.
+Neo4j browser is available on port 7474 of any of the hostnames described above.  However, because of the network environment that the cluster is in, hosts in the neo4j cluster advertise themselves with private internal DNS that is not resolvable from outside of the cluster.  See the “Security” and “Limitations” sections in this document for a discussion of the issues there, and for pointers on how you can configure your database with your organization’s DNS entries to enable this access.
+
+Browser access can be enabled with the following steps though
+
+#### Determine your Cluster Leader
+
+When the cluster forms, one node will be chosen as the leader; in Neo4j's topology, only the leader
+may accept writes.  To determine which host is the leader, you can run the cypher-shell command given above, and simply call the cypher procedure:  `CALL dbms.cluster.overview();`.  This will provide a routing table indicating which host (and pod) is the leader.
+
+If you only want to run read queries, it makes no difference which pod you attach to.
+
+#### Forward local ports
+
+First, use [kubectl to forward ports](https://kubernetes.io/docs/tasks/access-application-cluster/port-forward-access-application-cluster/) on your cluster's leader pod to your localhost.
+
+```
+MY_CLUSTER_LEADER_POD=mygraph-neo4j-core-0
+kubectl port-forward $MY_CLUSTER_LEADER_POD 7687:7687 7474:7474
+```
+
+In this example, my deployment is named "mygraph", and the "core-0" pod is the leader.  We are forwarding port 7474 for browser, and port 7687 for bolt access.
+
+#### Connect to Browser
+
+Open a browser to `http://localhost:7474` and you will be connecting directly to the cluster leader.
+
+**Important**:  when launching Neo4j Browser, you will see a `:server connect` box, which will be configured to connect to the host's advertised name, which will be an internal DNS name.  Make sure to change this to `localhost`, because the private DNS name is not resolveable from your local machine.
+
+Use your username and password as normal.
+
+Becuase you're connecting to the leader, both reads and writes are possible.  The same approach can be used to attach a browser instance on any local port to any of your pods.
 
 ### Adding Users, Changing Passwords
 
