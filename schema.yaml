@@ -54,9 +54,11 @@ properties:
   volumeStorageClass:
     title: Storage class for nodes, SSD storage recommended.
     type: string
-    default: standard
-    enum:
-    - "-"
+    default: SSD
+    x-google-marketplace:
+      type: STORAGE_CLASS
+      storageClass:
+        type: SSD
   # ubbAgentImage:
   #   type: string
   #   default: gcr.io/neo4j-k8s-marketplace-public/causal-cluster/ubbagent:$TAG
