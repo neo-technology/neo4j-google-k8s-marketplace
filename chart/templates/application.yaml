@@ -1,4 +1,4 @@
-apiVersion: app.k8s.io/v1alpha1
+apiVersion: app.k8s.io/v1beta1
 kind: Application
 metadata:
   name: "{{ .Release.Name | lower }}"
@@ -12,23 +12,29 @@ metadata:
     app.kubernetes.io/name: "{{ .Release.Name }}"
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
     app: {{ template "neo4j.name" . }}
-    component: application    
-spec:
-  type: Neo4j Enterprise
-  versions: {{ .Values.neo4jVersion }}
-  description: A native graph database supporting advanced analytics and ACID transactions.
-  maintainers:
-  - name: Neo4j, Inc.
-    url: https://neo4j.com
-  links:
-  - description: Getting Started
-    url: https://github.com/neo-technology/neo4j-google-k8s-marketplace/blob/master/user-guide/USER-GUIDE.md
-  - description: Neo4j Manual
-    url: https://neo4j.com/docs/developer-manual/current/introduction/?ref=googlemarketplace
-  - description: Clustering Documentation
-    url: https://neo4j.com/docs/operations-manual/current/clustering/?ref=googlemarketplace
-  - description: Support
-    url: https://support.neo4j.com/hc/en-us/?ref=googlemarketplace
+    component: application
+spec:    
+  descriptor:
+    type: Neo4j Enterprise
+    version: {{ .Values.neo4jVersion }}
+    description: A native graph database supporting advanced analytics and ACID transactions.
+    maintainers:
+    - name: Neo4j, Inc.
+      url: https://neo4j.com
+    keywords:
+    - graph
+    - cypher
+    - neo4j
+    - big data
+    links:
+    - description: Getting Started
+      url: https://github.com/neo-technology/neo4j-google-k8s-marketplace/blob/master/user-guide/USER-GUIDE.md
+    - description: Neo4j Manual
+      url: https://neo4j.com/docs/developer-manual/current/introduction/?ref=googlemarketplace
+    - description: Clustering Documentation
+      url: https://neo4j.com/docs/operations-manual/current/clustering/?ref=googlemarketplace
+    - description: Support
+      url: https://support.neo4j.com/hc/en-us/?ref=googlemarketplace
   selector:
     matchLabels:
       app.kubernetes.io/name: "{{ .Release.Name }}"
