@@ -52,7 +52,7 @@ Immediately after deploying Neo4j on GKE, as the pods are created the cluster be
 After installing from GCP Marketplace, your cluster will start with a strong password that was randomly generated in the startup process.   This is stored in a kubernetes secret that is attached to your deployment.   Given a deployment named “my-graph”, you can find the password as the “neo4j-password” key under the mygraph-neo4j-secrets configuration item in Kubernetes.   The password is base64 encoded, and can be recovered as plaintext by authorized users with this command:
 
 ```
-kubectl get secrets my-graph-neo4j-secrets -o yaml | grep neo4j-password: | sed 's/neo4j-password: *//' | base64 -D
+kubectl get secrets $APP_INSTANCE_NAME-neo4j-secrets -o yaml | grep neo4j-password: | sed 's/.*neo4j-password: *//' | base64 --decode
 ```
 
 This password applies for the base administrative user named “neo4j”.
@@ -94,7 +94,7 @@ To connect to your cluster, you can issue the following command; modify APP_INST
 
 ```
 APP_INSTANCE_NAME=my-graph
-NEO4J_PASSWORD=$(kubectl get secrets $APP_INSTANCE_NAME-neo4j-secrets -o yaml | grep neo4j-password: | sed 's/neo4j-password: *//' | base64 -D)
+# Set password as described above in NEO4J_PASSWORD
 kubectl run -it --rm cypher-shell \
   --image=gcr.io/neo4j-k8s-marketplace-public/causal-cluster:3.4 \
   --restart=Never \

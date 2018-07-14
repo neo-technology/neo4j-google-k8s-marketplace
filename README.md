@@ -116,7 +116,7 @@ It's stored in a secret, base64 encoded.  With proper access you can unmask the 
 like this:
 
 ```
-kubectl get secrets $APP_INSTANCE_NAME-neo4j-secrets -o yaml | grep neo4j-password: | sed 's/neo4j-password: *//' | base64 -D
+kubectl get secrets $APP_INSTANCE_NAME-neo4j-secrets -o yaml | grep neo4j-password: | sed 's/.*neo4j-password: *//' | base64 --decode
 ```
 
 ### Connecting to an Instance
@@ -131,7 +131,7 @@ kubectl run -it --rm cypher-shell \
    --restart=Never \
    --namespace=default \
    --command -- ./bin/cypher-shell -u neo4j \
-   -p "$(kubectl get secrets $APP_INSTANCE_NAME-neo4j-secrets -o yaml | grep neo4j-password: | sed 's/neo4j-password: *//' | base64 -D)" \
+   -p "$(kubectl get secrets $APP_INSTANCE_NAME-neo4j-secrets -o yaml | grep neo4j-password: | sed 's/.*neo4j-password: *//' | base64 --decode)" \
    -a $APP_INSTANCE_NAME-neo4j.default.svc.cluster.local "call dbms.cluster.overview()"
 ```
 
