@@ -127,7 +127,7 @@ kubectl get secrets $APP_INSTANCE_NAME-neo4j-secrets -o yaml | grep neo4j-passwo
 # then you will have a corresponding application/mygraph
 
 kubectl run -it --rm cypher-shell \
-   --image=gcr.io/neo4j-k8s-marketplace-public/causal-cluster:$SOLUTION_VERSION \
+   --image=gcr.io/cloud-marketplace/neo4j-public/causal-cluster-k8s:$SOLUTION_VERSION \
    --restart=Never \
    --namespace=default \
    --command -- ./bin/cypher-shell -u neo4j \
