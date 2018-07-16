@@ -96,7 +96,7 @@ To connect to your cluster, you can issue the following command; modify APP_INST
 APP_INSTANCE_NAME=my-graph
 # Set password as described above in NEO4J_PASSWORD
 kubectl run -it --rm cypher-shell \
-  --image=gcr.io/neo4j-k8s-marketplace-public/causal-cluster:3.4 \
+  --image=gcr.io/cloud-marketplace/neo4j-public/causal-cluster-k8s:3.4 \
   --restart=Never \
   --namespace=default \
   --command -- ./bin/cypher-shell -u neo4j \
