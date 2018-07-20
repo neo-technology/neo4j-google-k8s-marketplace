@@ -73,3 +73,6 @@ required:
 - name
 - namespace
 - image
+- coreServers
+- readReplicaServers
+- volumeStorageClass
