@@ -7,7 +7,7 @@ APP_NAME = neo4j
 REGISTRY = gcr.io/neo4j-k8s-marketplace-public/causal-cluster
 SOLUTION_VERSION=$(shell cat chart/Chart.yaml | grep version: | sed 's/.*: //g')
 APP_DEPLOYER_IMAGE=$(REGISTRY)/deployer:$(SOLUTION_VERSION)
-NEO4J_VERSION=3.4.4-enterprise
+NEO4J_VERSION=3.4.8-enterprise
 tools_path = ./vendor/marketplace-k8s-app-tools
 
 include $(tools_path)/crd.Makefile
