@@ -33,7 +33,7 @@ APP_TEST_PARAMETERS ?= { \
   "tester.image": "$(APP_TESTER_IMAGE)" \
 }
 
-app/build:: app/image .build/deployer .build/tester .build/backup
+app/build:: app/image .build/deployer .build/tester .build/backup .build/restore
 
 app/build-test:: app/build .build/tester
 
@@ -50,6 +50,8 @@ app/image:  causal-cluster/*
 	#docker push $(REGISTRY)/appropriate/curl:latest
 
 app/backup:: .build/backup
+
+app/restore:: .build/restore
 
 app/deployer:: .build/deployer
 
@@ -79,7 +81,17 @@ app/deployer:: .build/deployer
 	docker push "$(APP_TESTER_IMAGE)"
 	@date >> "$@"
 
-APP_BACKUP_IMAGE=$(REGISTRY)/backup:$(SOLUTION_VERSION)
+APP_RESTORE_IMAGE=$(REGISTRY)/restore:$(SOLUTION_VERSION)
+
+.build/restore: restore/*
+	docker build \
+		--tag "$(APP_RESTORE_IMAGE)" \
+		-f restore/Dockerfile \
+		.
+	docker push "$(APP_RESTORE_IMAGE)"
+	@date >> "$@"
+
+APP_BACKUP_IMAGE=$(REGISTRY)/restore:$(SOLUTION_VERSION)
 
 .build/backup: backup/*
 	docker build \
