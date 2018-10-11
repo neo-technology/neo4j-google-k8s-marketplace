@@ -131,6 +131,11 @@ spec:
       volumes:
         - name: plugins
           emptyDir: {}
+{{- if .Values.maintenanceServiceKeySecret }}
+        - name: "{{ .Values.maintenanceServiceKeySecret }}"
+          secret:
+            secretName: "{{ .Values.maintenanceServiceKeySecret }}"
+{{- end }}
   volumeClaimTemplates:
     - metadata:
         name: datadir
