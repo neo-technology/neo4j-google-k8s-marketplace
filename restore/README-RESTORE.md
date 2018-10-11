@@ -30,6 +30,16 @@ kubectl create secret generic restore-service-key \
    --from-file=credentials.json=$MY_SERVICE_ACCOUNT_KEY
 ```
 
+In `values.yaml`, then configure the secret you set here like so:
+
+```
+# maintenanceServiceKeySecret=restore-service-key
+```
+
+This setting allows the core and read replica nodes to access that service key
+as a volume.  That volume being present within the containers is necessary for the
+next step.
+
 ### Configure the initContainer for Core and Read Replica Nodes
 
 Finally, specify the initContainer like this, in `values.yaml`.
@@ -59,6 +69,8 @@ coreInitContainers:
      - name: FORCE_OVERWRITE
        value: "false"
 ```
+
+Notice that we're mounting the secret at the `/auth` path and then passing our application credentials as a file within that path.  This is what permits shell tools to access your google cloud storage resources.
 
 This snippet above creates the initContainer just for core nodes.  It's strongly recommended you do the same for `readReplicaInitContainers` if you are using read replicas. If you restore only to core nodes and not to read replicas, when they start
 the core nodes will replicate the data to the read replicas.   This will work just fine, but may result in longer startup times and much more bandwidth.
