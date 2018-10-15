@@ -15,11 +15,6 @@ the `backup` container in this same code repository.  We recommend you use that 
 inspect the `restore.sh` script, because it needs to make certain assumptions about
 directory structure that come out of archived backups in order to restore properly.
 
-## Using the Restore Container
-
-Code for the restore container can be found in this directory, and can be built as
-a docker container directly, and pushed to any registry as needed.
-
 ### Create a service key secret to access cloud storage
 
 First you want to create a kubernetes secret that contains the content of your account service key.  This key must have permissions to access the bucket and backup set that you're trying to restore. 
@@ -97,6 +92,18 @@ persistent volumes.  The default is false; if data already exists on the drive, 
 With the initContainer in place and properly configured, simply deploy a new cluster 
 using the regular approach.  Prior to start, the restore will happen, and when the 
 cluster comes live, it will be populated with the data.
+
+## Limitations
+
+As of Neo4j 3.4 series, data backups do not include authorization information for your cluster.
+That is, usernames/passwords associated with the graph are not included in the backup, and hence
+are not restored when you restore.
+
+This is something to be aware of; when launching a cluster typically you're providing startup auth
+information and separate configuration anyway.  If you create users, groups, and roles you may want
+to separately take copies of the auth files so that they can be restored when your cluster starts up.
+Alternatively, users may configure their systems to use LDAP providers in which case there is no need
+to backup any auth information.
 
 ## Ongoing Maintenance
 
