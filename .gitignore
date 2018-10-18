@@ -6,3 +6,5 @@ chart/templates/tests
 
 # Temporary diffs off of marketplacetools to make things work pending Google PRs
 diff
+
+customer-solution
