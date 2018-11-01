@@ -14,7 +14,7 @@ if [ -z $BACKUP_SET_DIR ] ; then
 fi
 
 if [ -z $PURGE_ON_COMPLETE ]; then
-    PURGE_ON_COMPLETE=false
+    PURGE_ON_COMPLETE=true
 fi
 
 # Pass the force flag to the restore operation, which will overwrite
@@ -52,11 +52,10 @@ echo "Using heap size $HEAP_SIZE and page cache $PAGE_CACHE"
 echo "From google storage bucket $BUCKET using credentials located at $GOOGLE_APPLICATION_CREDENTIALS"
 echo "============================================================"
 
-BACKUPSET_ROOT=/data/backupset
 RESTORE_ROOT=/data/backupset
 
 echo "Making restore directory"
-mkdir -p /data/backupset
+mkdir -p "$RESTORE_ROOT"
 
 echo "Copying $REMOTE_BACKUPSET -> $RESTORE_ROOT"
 
@@ -76,7 +75,7 @@ BACKUP_FILENAME=$(basename "$REMOTE_BACKUPSET")
 RESTORE_FROM=uninitialized
 if [[ $BACKUP_FILENAME =~ \.tar\.gz$ ]] ; then
     echo "Untarring backup file"
-    cd "$RESTORE_ROOT" && tar --force-local -zxvf "$BACKUP_FILENAME"
+    cd "$RESTORE_ROOT" && tar --force-local --overwrite -zxvf "$BACKUP_FILENAME"
 
     if [ $? -ne 0 ] ; then
         echo "Failed to unarchive target backup set"
@@ -92,9 +91,9 @@ if [[ $BACKUP_FILENAME =~ \.tar\.gz$ ]] ; then
     else 
         RESTORE_FROM="$RESTORE_ROOT/$BACKUP_SET_DIR"
     fi
-elif [[ $BACKUP_NAME =~ \.zip$ ]] ; then
+elif [[ $BACKUP_FILENAME =~ \.zip$ ]] ; then
     echo "Unzipping backupset"
-    cd "$RESTORE_ROOT" && unzip "$BACKUP_FILENAME"
+    cd "$RESTORE_ROOT" && unzip -o "$BACKUP_FILENAME"
     
     if [ $? -ne 0 ]; then 
         echo "Failed to unzip target backup set"
@@ -106,14 +105,14 @@ elif [[ $BACKUP_NAME =~ \.zip$ ]] ; then
 
     if [ -z $BACKUP_SET_DIR ] ; then
         echo "BACKUP_SET_DIR was not specified, so I am assuming this backup set was formatted by my backup utility"
-        RESTORE_FROM="$RESTORE_FROM/data/$UNZIPPED_BACKUP_DIR"
+        RESTORE_FROM="$RESTORE_ROOT/data/$UNZIPPED_BACKUP_DIR"
     else
-        RESTORE_FROM="$RESTORE_FROM/$BACKUP_SET_DIR"
+        RESTORE_FROM="$RESTORE_ROOT/$BACKUP_SET_DIR"
     fi
 else
     # If user stores backups as uncompressed directories, we would have pulled down the entire directory
     echo "This backup $BACKUP_FILENAME looks uncompressed."
-    RESTORE_FROM="$RESTORE_FROM/$BACKUP_FILENAME"
+    RESTORE_FROM="$RESTORE_ROOT/$BACKUP_FILENAME"
 fi
 
 echo "BACKUP_FILENAME=$BACKUP_FILENAME"
@@ -123,7 +122,7 @@ echo "RESTORE_FROM=$RESTORE_FROM"
 
 echo "Set to restore from $RESTORE_FROM"
 echo "Post uncompress backup size:"
-ls -al "$BACKUPSET_ROOT"
+ls -al "$RESTORE_ROOT"
 du -hs "$RESTORE_FROM"
 
 cd /data && \
@@ -146,7 +145,7 @@ echo "Restore process complete with exit code $RESTORE_EXIT_CODE"
 
 echo "Rehoming database"
 echo "Restored to:"
-ls -lR /var/lib/neo4j/data/databases
+ls -l /var/lib/neo4j/data/databases
 
 # neo4j-admin restore puts the DB in the wrong place, it needs to be re-homed
 # for docker.
@@ -161,11 +160,11 @@ echo "Final permissions"
 ls -al /data/databases/graph.db
 
 echo "Final size"
-du -ms /data/databases/graph.db
+du -hs /data/databases/graph.db
 
 if [ "$PURGE_ON_COMPLETE" = true ] ; then
     echo "Purging backupset from disk"
-    rm -rf "$BACKUPSET_ROOT"
+    rm -rf "$RESTORE_ROOT"
 fi
 
 exit $RESTORE_EXIT_CODE
