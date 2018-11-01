@@ -75,9 +75,9 @@ the core nodes will replicate the data to the read replicas.   This will work ju
 - `GOOGLE_APPLICATION_CREDENTIALS` - path to a file with a JSON service account key (see credentials below)
 - `REMOTE_BACKUPSET` the URL of the backupset, of the form `gs://my-bucket/my-backup.tar.gz` where the backup set resides.
 - `BACKUP_SET_DIR` - (optional).  If you used the backup container that comes with this repo, then this is not needed.  If you made your own backup, this should contain the name of the directory that the compressed backup set expands to.  This is intended to handle relative paths within the compressed set.  For example if your backup set `foo.tar.gz` decompresses to `myData/mySet/*` files, then you would set `BACKUP_SET_DIR=myData/mySet` (the relative path) so that the restore utility knows the right directory to point at after the set is uncompressed.
-- `PURGE_ON_COMPLETE` (defaults to false/no).  If this is set to the value "true", the restore process will remove the restore artifacts from disk.  Otherwise, they
-will be left in place.  This is useful for debugging restores, to see what was
-copied down from cloud storage and how it was expanded.
+- `PURGE_ON_COMPLETE` (defaults to true).  If this is set to the value "true", the restore process will remove the restore artifacts from disk.  With any other 
+value, they will be left in place.  This is useful for debugging restores, to 
+see what was copied down from cloud storage and how it was expanded.
 
 The restore container can detect .tar.gz and .zip compressed backups and deal with them appropriately, as well as uncompressed directory backup sets.
 
