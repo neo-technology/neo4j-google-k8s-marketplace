@@ -155,6 +155,13 @@ Provided with this distribution is a method of backing up a neo4j instance to Go
 
 For full details on all aspects of Backup and Restore, please consult the [Neo4j documentation on backups](https://neo4j.com/docs/operations-manual/current/backup/?ref=googlemarketplace).
 
+### Restore
+
+This repo contains a restore directory with a container that can restore a Neo4j backup
+to the pod before it starts.  Generally the restore runs as an initContainer.  You will
+need a backup set stored in google storage, and a service key with access to the
+relevant bucket.
+
 ### Image Updates
 
 This version of Neo4j on GKE tracks the 3.4 release series of Neo4j.  As such, periodic updates may be provided which will increase the patch level release that is underlying causal cluster, but at no time will any non-backwards compatible image updates be introduced.

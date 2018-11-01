@@ -1,13 +1,16 @@
 #!/bin/bash
 
-if [ -z $BUCKET ]; then
-    echo "You must specify a BUCKET address such as gs://my-backups/"
+if [ -z $REMOTE_BACKUPSET ]; then
+    echo "You must specify a REMOTE_BACKUPSET such as gs://my-backups/my-backup.tar.gz"
     exit 1
 fi
 
-if [ -z $BACKUP_NAME ] ; then
-    echo "You must specify a BACKUP_NAME such as my-data.tar.gz"
-    exit 1
+if [ -z $BACKUP_SET_DIR ] ; then
+    echo "*********************************************************************************************"
+    echo "* You have not specified BACKUP_SET_DIR -- this means that if your archive set uncompresses *"
+    echo "* to a different directory than the file is named, this restore may fail                    *"
+    echo "* See logs below to ensure the right path was selected.                                     *"
+    echo "*********************************************************************************************"
 fi
 
 if [ -z $PURGE_ON_COMPLETE ]; then
@@ -36,11 +39,10 @@ fi
 echo "Activating google credentials before beginning"
 echo $GOOGLE_APPLICATION_CREDENTIALS
 ls -l $GOOGLE_APPLICATION_CREDENTIALS
-cat $GOOGLE_APPLICATION_CREDENTIALS
 gcloud auth activate-service-account --key-file "$GOOGLE_APPLICATION_CREDENTIALS"
 
 if [ $? -ne 0 ] ; then
-    echo "Credentials failed; no way to copy from google."
+    echo "Credentials failed; copying from Google will likely fail unless the bucket is public"
     echo "Ensure GOOGLE_APPLICATION_CREDENTIALS is appropriately set."
 fi
 
@@ -51,28 +53,30 @@ echo "From google storage bucket $BUCKET using credentials located at $GOOGLE_AP
 echo "============================================================"
 
 BACKUPSET_ROOT=/data/backupset
-RESTORE_FROM=/data/backupset
+RESTORE_ROOT=/data/backupset
 
 echo "Making restore directory"
 mkdir -p /data/backupset
 
-echo "Copying $BUCKET/$BACKUP_NAME -> $RESTORE_FROM"
+echo "Copying $REMOTE_BACKUPSET -> $RESTORE_ROOT"
 
 # By copying recursively, the user can specify a dir with an uncompressed
 # backup if preferred. The -m flag downloads in parallel if possible.
-gsutil cp -r "$BUCKET/$BACKUP_NAME" "$RESTORE_FROM"
+gsutil -m cp -r "$REMOTE_BACKUPSET" "$RESTORE_ROOT"
 
 echo "Backup size pre-uncompress:"
-du -hs "$RESTORE_FROM"
-ls -l "$RESTORE_FROM"
+du -hs "$RESTORE_ROOT"
+ls -l "$RESTORE_ROOT"
 
 # Important note!  If you have a backup name that is "foo.tar.gz" or 
 # foo.zip, we need to assume that this unarchives to a directory called
 # foo, as neo4j backup sets are directories.  So we'll remove the suffix
 # after unarchiving and use that as the actual backup target.
-if [[ $BACKUP_NAME =~ \.tar\.gz$ ]] ; then
-    echo "Untarring backupset"
-    cd "$RESTORE_FROM" && tar --force-local -zxvf "$BACKUP_NAME"
+BACKUP_FILENAME=$(basename "$REMOTE_BACKUPSET")
+RESTORE_FROM=uninitialized
+if [[ $BACKUP_FILENAME =~ \.tar\.gz$ ]] ; then
+    echo "Untarring backup file"
+    cd "$RESTORE_ROOT" && tar --force-local -zxvf "$BACKUP_FILENAME"
 
     if [ $? -ne 0 ] ; then
         echo "Failed to unarchive target backup set"
@@ -80,29 +84,47 @@ if [[ $BACKUP_NAME =~ \.tar\.gz$ ]] ; then
     fi
 
     # foo.tar.gz untars/zips to a directory called foo.
-    UNTARRED_BACKUP_DIR=${BACKUP_NAME%.tar.gz}
-    RESTORE_FROM="$RESTORE_FROM/data/$UNTARRED_BACKUP_DIR"
+    UNTARRED_BACKUP_DIR=${BACKUP_FILENAME%.tar.gz}
+
+    if [ -z $BACKUP_SET_DIR ] ; then
+        echo "BACKUP_SET_DIR was not specified, so I am assuming this backup set was formatted by my backup utility"
+        RESTORE_FROM="$RESTORE_ROOT/data/$UNTARRED_BACKUP_DIR"
+    else 
+        RESTORE_FROM="$RESTORE_ROOT/$BACKUP_SET_DIR"
+    fi
 elif [[ $BACKUP_NAME =~ \.zip$ ]] ; then
     echo "Unzipping backupset"
-    cd "$RESTORE_FROM" && unzip "$BACKUP_NAME"
+    cd "$RESTORE_ROOT" && unzip "$BACKUP_FILENAME"
     
     if [ $? -ne 0 ]; then 
         echo "Failed to unzip target backup set"
         exit 1
     fi
 
-    # Remove file extension, get to directory name
-    UNZIPPED_BACKUP_DIR=${BACKUP_NAME%.zip}
-    RESTORE_FROM="$RESTORE_FROM/data/$UNZIPPED_BACKUP_DIR"
+    # Remove file extension, get to directory name  
+    UNZIPPED_BACKUP_DIR=${BACKUP_FILENAME%.zip}
+
+    if [ -z $BACKUP_SET_DIR ] ; then
+        echo "BACKUP_SET_DIR was not specified, so I am assuming this backup set was formatted by my backup utility"
+        RESTORE_FROM="$RESTORE_FROM/data/$UNZIPPED_BACKUP_DIR"
+    else
+        RESTORE_FROM="$RESTORE_FROM/$BACKUP_SET_DIR"
+    fi
 else
-    echo "This backup $BACKUP_NAME looks uncompressed."
-    RESTORE_FROM="$RESTORE_FROM/$BACKUP_NAME"
+    # If user stores backups as uncompressed directories, we would have pulled down the entire directory
+    echo "This backup $BACKUP_FILENAME looks uncompressed."
+    RESTORE_FROM="$RESTORE_FROM/$BACKUP_FILENAME"
 fi
 
+echo "BACKUP_FILENAME=$BACKUP_FILENAME"
+echo "UNTARRED_BACKUP_DIR=$UNTARRED_BACKUP_DIR"
+echo "UNZIPPED_BACKUP_DIR=$UNZIPPED_BACKUP_DIR"
+echo "RESTORE_FROM=$RESTORE_FROM"
+
 echo "Set to restore from $RESTORE_FROM"
-echo "Post compress backup size:"
+echo "Post uncompress backup size:"
+ls -al "$BACKUPSET_ROOT"
 du -hs "$RESTORE_FROM"
-ls "$RESTORE_FROM"
 
 cd /data && \
 echo "Dry-run command"
