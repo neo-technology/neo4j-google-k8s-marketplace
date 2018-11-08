@@ -35,6 +35,9 @@ This setting allows the core and read replica nodes to access that service key
 as a volume.  That volume being present within the containers is necessary for the
 next step.
 
+If this service key secret is not in place, the auth information will not be able to be mounted as
+a volume in the initContainer, and your pods may get stuck/hung at "ContainerCreating" phase.
+
 ### Configure the initContainer for Core and Read Replica Nodes
 
 Finally, specify the initContainer like this, in `values.yaml`.
@@ -86,6 +89,19 @@ The restore container can detect .tar.gz and .zip compressed backups and deal wi
 - `FORCE_OVERWRITE` if this is the value "true", then the restore process will overwrite and
 destroy any existing data that is on the volume.  Take care when using this in combination with
 persistent volumes.  The default is false; if data already exists on the drive, the restore operation will likely fail but preserve your data.
+
+**Warnings**
+
+A common way you might deploy Neo4j would be restore from last backup when a container initializes.  This would be good for a cluster, because it would minimize how much catch-up
+is needed when a node is launched.  Any difference between the last backup and the rest of the
+cluster would be provided via catch-up.
+
+For single nodes, take extreme care here.  If a node crashes, and you automatically restore from
+backup, and force-overwrite what was previously on the disk, you will lose any data that the
+database captured between when the last backup was taken, and when the crash happened.  As a
+result, for single node instances of Neo4j you should either perform restores manually when you
+need them, or you should keep a very regular backup schedule to minimize this data loss.  If data
+loss is under no circumstances acceptable, do not automate restores for single node deploys.
 
 ## Running the Restore
 
