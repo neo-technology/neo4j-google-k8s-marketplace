@@ -10,7 +10,7 @@ image: "gcr.io/neo4j-k8s-marketplace-public/causal-cluster:3.4"
 # Version for the solution container
 imageTag: "3.4"
 # Neo4j version the solution container is based on.
-neo4jVersion: "3.4.1"
+neo4jVersion: "3.4.9"
 ubbAgentImage: "gcr.io/neo4j-k8s-marketplace-public/causal-cluster/ubbagent:3.4"
 imagePullPolicy: "Always"
 # imagePullSecret: registry-secret
@@ -27,7 +27,7 @@ authEnabled: true
 # neo4jPassword:
 
 # Uncomment this and set it if you want to pair an existing secret service key
-# maintenanceServiceKeySecret=restore-service-key
+# maintenanceServiceKeySecret: "restore-service-key"
 
 ######################
 #### CORE SERVERS  ###
@@ -48,14 +48,15 @@ coreInitContainers: []
 #    - name: restore-service-key
 #      mountPath: /auth
 #    env:
-#    - name: BUCKET
-#      value: gs://tmp-k8s-backup-storage
-#    - name: BACKUP_NAME
-#      value: TrumpTweets-2018-07-02-12:44:02.tar.gz
+#    - name: REMOTE_BACKUPSET
+#      value: gs://neo4j-database-backups/meetup-dataset-dirformat
+#    - name: BACKUP_SET_DIR
+#      value: meetup-dataset-backup
 #    - name: GOOGLE_APPLICATION_CREDENTIALS
 #      value: /auth/credentials.json
+#    # CAUTION: Read documentation before proceeding with this flag.
 #    - name: FORCE_OVERWRITE
-#      value: "false"
+#      value: "true"
 #####################################################################
 # EXAMPLE OF HOW TO SETUP initContainers for custom plugin install.
 # do not use this particular one, because APOC is already installed, it is
@@ -108,6 +109,10 @@ readReplicaServers: 0
 #   value: extra-var-value-1
 # - name: EXTRA_VAR_2
 #   value: extra-var-value-2
+
+# See above for examples on how to restore recent backups to read replicas.
+# You need to configure this separately from core member init containers, to permit
+# different configuration to apply to each node set.
 readReplicaInitContainers: []
 
 cpuRequest: 200m
