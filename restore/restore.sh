@@ -151,7 +151,7 @@ neo4j-admin restore \
 
 RESTORE_EXIT_CODE=$?
 
-if [ RESTORE_EXIT_CODE -ne 0 ]; then 
+if [ "$RESTORE_EXIT_CODE" -ne 0 ]; then 
     echo "Restore process failed; will not continue"
     exit $RESTORE_EXIT_CODE
 fi
