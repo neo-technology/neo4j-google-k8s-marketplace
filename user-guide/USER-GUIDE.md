@@ -27,8 +27,9 @@ The standard installation flow for Neo4j on GCP Marketplace is to simply follow 
 The following lists relevant configuration options for the deploy.  Only the name is strictly required, but users are strongly encouraged to consult [Neo4j’s System Requirements](https://neo4j.com/docs/operations-manual/current/installation/requirements/?ref=googlemarketplace) and to tailor CPU, memory, and disk to the anticipated workload that will be used, in order to ensure best performance.
 
 * **name**:  the name of your cluster deployment
-* **coreServers**: (default: 3) the number of core servers in your cluster ([refer to Neo4j Causal Cluster architecture](https://neo4j.com/docs/operations-manual/current/clustering/introduction/?ref=googlemarketplace)).  Core Servers' main responsibility is to safeguard data. The Core Servers do so by replicating all transactions using the Raft protocol.
-* **readReplicaServers**: (default: 0) the number of read replicas in your cluster ([refer to Neo4j Causal Cluster architecture](https://neo4j.com/docs/operations-manual/current/clustering/introduction/?ref=googlemarketplace)).  Read Replicas' main responsibility is to scale out graph workloads (Cypher queries, procedures, and so on). Read Replicas act like caches for the data that the Core Servers safeguard, but they are not simple key-value caches. In fact Read Replicas are fully-fledged Neo4j databases capable of fulfilling arbitrary (read-only) graph queries and procedures.
+* **coreServers**: (default: 3) the number of core servers in your cluster ([refer to Neo4j Causal Cluster architecture](https://neo4j.com/docs/operations-manual/current/clustering/introduction/?ref=googlemarketplace)).  Core Servers' main responsibility is to safeguard data. The Core Servers do so by replicating all transactions using the Raft protocol.  This setting can be set to 1, which
+will result in a single neo4j instance ([dbms.mode=SINGLE](https://neo4j.com/docs/operations-manual/current/reference/configuration-settings/#config_dbms.mode)).  Additional notes: if a single instance is chosen, it cannot be scaled up and down.  A core server count of 2 is not recommended or a sensible HA cluster sizing.
+* **readReplicaServers**: (default: 0) the number of read replicas in your cluster ([refer to Neo4j Causal Cluster architecture](https://neo4j.com/docs/operations-manual/current/clustering/introduction/?ref=googlemarketplace)).  Read Replicas' main responsibility is to scale out graph workloads (Cypher queries, procedures, and so on). Read Replicas act like caches for the data that the Core Servers safeguard, but they are not simple key-value caches. In fact Read Replicas are fully-fledged Neo4j databases capable of fulfilling arbitrary (read-only) graph queries and procedures.  If coreServers is less than or equal to 2, this setting is ignored and 0 replicas will result.
 * **cpuRequest**: CPU units to allocate to each pod.  Refer to [Managing computing resources on Kubernetes](https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/#meaning-of-cpu)
 * **memoryRequest**: Memory to allocate to each pod.
 * **cpuLimit**: CPU unit limit per pod
@@ -45,7 +46,8 @@ heap size and page cache sizing are the most important places to start when tuni
 
 ### Cluster Formation
 
-Immediately after deploying Neo4j on GKE, as the pods are created the cluster begins to form.  This may take up to 5 minutes, depending on a number of factors including how long it takes pods to get scheduled, and how many resources are associated with the pods.  While the cluster is forming, the Neo4j REST API and Bolt endpoints may not be available.   After a few minutes, bolt endpoints 
+Immediately after deploying Neo4j on GKE, as the pods are created the cluster begins to form.  This may take up to 5 minutes, depending on a number of factors including how long it takes pods to get scheduled, and how many resources are associated with the pods.  While the cluster is forming, the Neo4j REST API and Bolt endpoints may not be available.   After a few minutes, bolt endpoints become available inside of the kubernetes cluster.  Please note that by default, Neo4j services are not
+exposed externally.  See below for information on proxying and other limitations.
 
 ### Generated Password
 
@@ -85,7 +87,7 @@ Any client may connect to this address, as it is a DNS record with multiple entr
 
 The deployment package is structured as a helm chart; to avoid the need for installation of helm users and other objects into Kubernetes such as tiller, helm is essentially used as a template engine.  As a result, so install Neo4j into an existing k8s cluster, we use helm to expand the chart, and then simply apply the result using kubectl.
 
-Consult the README.md at the top of the github repository for instructions on how to use helm to expand the chart, and apply that manually to your kubernetes cluster.  Broadly, the process is to expand the helm chart into a single large template of resources, and then simply apply those resources to your cluster using kubectl.
+Consult the README.md at the top of the github repository for instructions on how to use helm to expand the chart, and apply that manually to your kubernetes cluster.  Broadly, the process is to expand the helm chart into a single large template of resources, and then simply apply those resources to your cluster using `kubectl apply`.
 
 ## Usage
 
@@ -110,7 +112,7 @@ Please consult standard Neo4j documentation on the many other usage options pres
 
 Neo4j browser is available on port 7474 of any of the hostnames described above.  However, because of the network environment that the cluster is in, hosts in the neo4j cluster advertise themselves with private internal DNS that is not resolvable from outside of the cluster.  See the “Security” and “Limitations” sections in this document for a discussion of the issues there, and for pointers on how you can configure your database with your organization’s DNS entries to enable this access.
 
-Browser access can be enabled with the following steps though
+Browser access can be enabled with the following steps.
 
 #### Determine your Cluster Leader
 
@@ -174,9 +176,17 @@ Before scaling a database running on kubernetes, make sure to consult in depth t
 
 For many users and use cases, careful planning on initial database sizing is preferable to later attempts to rapidly scale the cluster.
 
-When adding new nodes to a neo4j cluster, upon the node joining the cluster, it will need to replicate the existing data from the other nodes in the cluster.  As a result, this can create a temporary higher load on the remaining nodes as they replicate data to the new member.   In the case of very large databases, this can cause temporary unavailability under heavy loads.
+When adding new nodes to a neo4j cluster, upon the node joining the cluster, it will need to replicate the existing data from the other nodes in the cluster.  As a result, this can create a temporary higher load on the remaining nodes as they replicate data to the new member.   In the case of very large databases, this can cause temporary unavailability under heavy loads.  We recommend
+that when setting up a scalable instance of Neo4j, you configure pods to restore from a recent
+backup set before starting.  Instructions on how to restore are provided in this repo.  In this way,
+new pods are mostly caught up before entering the cluster, and the "catch-up" process is minimal both
+in terms of time spent and load placed on the rest of the cluster.
 
 Because of the data intensive nature of any database, careful planning before scaling is highly recommended.   Storage allocation for each new node is also needed; as a result, when scaling the database, the kubernetes cluster will create new persistent volume claims and GCE volumes.
+
+Because Neo4j's configuration is different in single-node mode (dbms.mode=SINGLE) you should not
+scale a deployment if it was initially set to 1 coreServer.  This will result in multiple independent
+databases, not one cluster.
 
 ### Execution
 Neo4j on GKE consists of two StatefulSets in Kubernetes, one for core nodes, and one for replicas.  In configuration, even if you chose zero replicas, you will see a StatefulSet with zero members.
