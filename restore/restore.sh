@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Validation of inputs upfront
 if [ -z $REMOTE_BACKUPSET ]; then
     echo "You must specify a REMOTE_BACKUPSET such as gs://my-backups/my-backup.tar.gz"
     exit 1
@@ -17,6 +18,27 @@ if [ -z $PURGE_ON_COMPLETE ]; then
     PURGE_ON_COMPLETE=true
 fi
 
+echo "=============== Neo4j Restore ==============================="
+echo "Beginning restore process"
+echo "GOOGLE_APPLICATION_CREDENTIALS=$GOOGLE_APPLICATION_CREDENTIALS"
+echo "REMOTE_BACKUPSET=$REMOTE_BACKUPSET"
+echo "BACKUP_SET_DIR=$BACKUP_SET_DIR"
+echo "FORCE_OVERWRITE=$FORCE_OVERWRITE"
+ls /data/databases
+echo "============================================================"
+
+if [ -d "/data/databases/graph.db" ] ; then
+    echo "You have an existing graph database at /data/databases/graph.db"
+
+    if [ "$FORCE_OVERWRITE" != "true" ] ; then
+        echo "And you have not specified FORCE_OVERWRITE=true, so we will not restore because"
+        echo "that would overwrite your existing data.   Exiting.".
+        exit 0;
+    fi
+else 
+    echo "No existing graph database found at /data/databases/graph.db"
+fi
+
 # Pass the force flag to the restore operation, which will overwrite
 # whatever is there, if and only if FORCE_OVERWRITE=true.
 if [ "$FORCE_OVERWRITE" = true ]; then
@@ -28,16 +50,7 @@ else
     FORCE_FLAG=""
 fi
 
-if [ -z $HEAP_SIZE ] ; then
-    HEAP_SIZE=2G
-fi
-
-if [ -z $PAGE_CACHE ]; then
-    PAGE_CACHE=4G
-fi
-
 echo "Activating google credentials before beginning"
-echo $GOOGLE_APPLICATION_CREDENTIALS
 ls -l $GOOGLE_APPLICATION_CREDENTIALS
 gcloud auth activate-service-account --key-file "$GOOGLE_APPLICATION_CREDENTIALS"
 
@@ -45,12 +58,6 @@ if [ $? -ne 0 ] ; then
     echo "Credentials failed; copying from Google will likely fail unless the bucket is public"
     echo "Ensure GOOGLE_APPLICATION_CREDENTIALS is appropriately set."
 fi
-
-echo "=============== Neo4j Restore ==============================="
-echo "Beginning restore from $BACKUP_NAME to /data/"
-echo "Using heap size $HEAP_SIZE and page cache $PAGE_CACHE"
-echo "From google storage bucket $BUCKET using credentials located at $GOOGLE_APPLICATION_CREDENTIALS"
-echo "============================================================"
 
 RESTORE_ROOT=/data/backupset
 
@@ -131,6 +138,9 @@ echo neo4j-admin restore \
     --from="$RESTORE_FROM" \
     --database=graph.db $FORCE_FLAG
 
+# This data is output because of the way neo4j-admin works.  It writes the restored set to
+# /var/lib/neo4j by default.  This can fail if volumes aren't sized appropriately, so this 
+# aids in debugging.
 echo "Volume mounts and sizing"
 df -h
 
@@ -141,7 +151,10 @@ neo4j-admin restore \
 
 RESTORE_EXIT_CODE=$?
 
-echo "Restore process complete with exit code $RESTORE_EXIT_CODE"
+if [ RESTORE_EXIT_CODE -ne 0 ]; then 
+    echo "Restore process failed; will not continue"
+    exit $RESTORE_EXIT_CODE
+fi
 
 echo "Rehoming database"
 echo "Restored to:"
@@ -150,6 +163,18 @@ ls -l /var/lib/neo4j/data/databases
 # neo4j-admin restore puts the DB in the wrong place, it needs to be re-homed
 # for docker.
 mkdir /data/databases
+
+# Danger: here we are destroying previous data.
+# Optional: you can move the database out of the way to preserve the data just in case,
+# but we don't do it this way because for large DBs this will just rapidly fill the disk
+# and cause out of disk errors.
+if [ -d "/data/databases/graph.db" ] ; then
+   if [ "$FORCE_OVERWRITE" = "true" ] ; then
+      echo "Removing previous database because FORCE_OVERWRITE=true"
+      rm -rf /data/databases/graph.db
+   fi
+fi
+
 mv /var/lib/neo4j/data/databases/graph.db /data/databases/
 
 # Modify permissions/group, because we're running as root.
