@@ -26,12 +26,16 @@ spec:
         env:
           - name: NEO4J_ACCEPT_LICENSE_AGREEMENT
             value: "{{ .Values.acceptLicenseAgreement }}"
-          - name: NEO4J_dbms_mode
-            value: CORE
           - name: NUMBER_OF_CORES
             value: "{{ .Values.coreServers }}"
           - name: AUTH_ENABLED
             value: "{{ .Values.authEnabled }}"
+{{- if lt .Values.coreServers 3.0 }}
+          - name: NEO4J_dbms_mode
+            value: SINGLE
+{{ else }}
+          - name: NEO4J_dbms_mode
+            value: CORE
           - name: NEO4J_causal__clustering_discovery__type
             value: DNS
           - name: NEO4J_causal__clustering_minimum__core__cluster__size__at__formation
@@ -40,6 +44,7 @@ spec:
             value: "3"
           - name: NEO4J_causal__clustering_initial__discovery__members
             value: "{{ template "neo4j.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:5000"
+{{- end }}
           {{- if .Values.authEnabled }}
           - name: NEO4J_SECRETS_PASSWORD
             valueFrom:
@@ -88,8 +93,8 @@ spec:
           name: browserhttps
         - containerPort: 7687
           name: bolt
-        securityContext:
-          privileged: true
+        # securityContext:
+        #   privileged: true
         volumeMounts:
         - name: datadir
           mountPath: "{{ .Values.volumeMountPath }}"
@@ -131,6 +136,11 @@ spec:
       volumes:
         - name: plugins
           emptyDir: {}
+{{- if .Values.maintenanceServiceKeySecret }}
+        - name: "{{ .Values.maintenanceServiceKeySecret }}"
+          secret:
+            secretName: "{{ .Values.maintenanceServiceKeySecret }}"
+{{- end }}
   volumeClaimTemplates:
     - metadata:
         name: datadir

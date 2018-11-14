@@ -14,10 +14,10 @@ properties:
     x-google-marketplace:
       type: IMAGE
   coreServers:
-    title: Server replicas to use
+    title: Core servers to use
     type: integer
     default: 3
-    minimum: 3
+    minimum: 1
     maximum: 9
   readReplicaServers:
     title: Read Replicas

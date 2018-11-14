@@ -4,7 +4,12 @@ metadata:
   name: "{{ template "neo4j.replica.fullname" . }}"
 spec:
   serviceName: {{ template "neo4j.name" . }}-readreplica
+{{- if lt .Values.coreServers 3.0 }}
+  # Replicas are only meaningful if we have a core set.  Single mode operations here.
+  replicas: 0
+{{ else }}  
   replicas: {{ .Values.readReplicaServers }}
+{{- end }}
   selector:
     matchLabels:
       release: {{ .Values.name | quote }}
@@ -79,8 +84,8 @@ spec:
           name: browserhttps
         - containerPort: 7687
           name: bolt
-        securityContext:
-          privileged: true
+        # securityContext:
+        #   privileged: true
         volumeMounts:
         - name: datadir
           mountPath: "{{ .Values.volumeMountPath }}"
@@ -113,6 +118,11 @@ spec:
       volumes:
         - name: plugins
           emptyDir: {}
+{{- if .Values.maintenanceServiceKeySecret }}
+        - name: "{{ .Values.maintenanceServiceKeySecret }}"
+          secret:
+            secretName: "{{ .Values.maintenanceServiceKeySecret }}"
+{{- end }}
   volumeClaimTemplates:
     - metadata:
         name: datadir

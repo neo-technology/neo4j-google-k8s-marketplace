@@ -10,7 +10,7 @@ image: "gcr.io/neo4j-k8s-marketplace-public/causal-cluster:3.4"
 # Version for the solution container
 imageTag: "3.4"
 # Neo4j version the solution container is based on.
-neo4jVersion: "3.4.1"
+neo4jVersion: "3.4.9"
 ubbAgentImage: "gcr.io/neo4j-k8s-marketplace-public/causal-cluster/ubbagent:3.4"
 imagePullPolicy: "Always"
 # imagePullSecret: registry-secret
@@ -26,26 +26,42 @@ authEnabled: true
 ## Defaults to a random 10-character alphanumeric string if not set and authEnabled is true
 # neo4jPassword:
 
+# Uncomment this and set it if you want to pair an existing secret service key
+# maintenanceServiceKeySecret: "restore-service-key"
+
 ######################
 #### CORE SERVERS  ###
 ######################
 coreServers: 3
 coreSidecarContainers: []
 
-## init containers to run before the Neo4j replica pod e.g. to install plugins
-# - name: init-plugins
-#   image: "appropriate/curl:latest"
-#   imagePullPolicy: "IfNotPresent"
-#   volumeMounts:
-#   - name: plugins
-#     mountPath: /plugins
-#   command:
-#     - "/bin/sh"
-#     - "-c"
-#     - |
-#       curl -L https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.2.0.3/apoc-3.2.0.3-all.jar -O
-#       cp apoc-3.2.0.3-all.jar /plugins/
 coreInitContainers: []
+#####################################################################
+# ---> EXAMPLE OF HOW TO SETUP initContainers for restore.
+#####################################################################
+#  - name: restore-from-file
+#    image: gcr.io/neo4j-k8s-marketplace-public/causal-cluster/restore:3.4
+#    imagePullPolicy: Always
+#    volumeMounts:
+#    - name: datadir
+#      mountPath: /data
+#    - name: restore-service-key
+#      mountPath: /auth
+#    env:
+#    - name: REMOTE_BACKUPSET
+#      value: gs://neo4j-database-backups/meetup-dataset-dirformat
+#    - name: BACKUP_SET_DIR
+#      value: meetup-dataset-backup
+#    - name: GOOGLE_APPLICATION_CREDENTIALS
+#      value: /auth/credentials.json
+#    # CAUTION: Read documentation before proceeding with this flag.
+#    - name: FORCE_OVERWRITE
+#      value: "true"
+#####################################################################
+# EXAMPLE OF HOW TO SETUP initContainers for custom plugin install.
+# do not use this particular one, because APOC is already installed, it is
+# just provided as an example.
+#####################################################################
 #  - name: init-plugins
 #    image: "gcr.io/neo4j-k8s-marketplace-public/causal-cluster/appropriate/curl"
 #    imagePullPolicy: "IfNotPresent"
@@ -93,19 +109,11 @@ readReplicaServers: 0
 #   value: extra-var-value-1
 # - name: EXTRA_VAR_2
 #   value: extra-var-value-2
+
+# See above for examples on how to restore recent backups to read replicas.
+# You need to configure this separately from core member init containers, to permit
+# different configuration to apply to each node set.
 readReplicaInitContainers: []
-#  - name: init-plugins
-#    image: "gcr.io/neo4j-k8s-marketplace-public/causal-cluster/appropriate/curl"
-#    imagePullPolicy: "IfNotPresent"
-#    volumeMounts:
-#    - name: plugins
-#      mountPath: /plugins
-#    command:
-#      - "/bin/sh"
-#      - "-c"
-#      - |
-#        curl -L https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.4.0.1/apoc-3.4.0.1-all.jar -O
-#        cp apoc-3.4.0.1-all.jar /plugins/
 
 cpuRequest: 200m
 cpuLimit: 8
