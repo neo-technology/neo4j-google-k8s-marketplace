@@ -17,7 +17,7 @@ spec:
   descriptor:
     type: Neo4j Enterprise
     version: {{ .Values.neo4jVersion }}
-    description: A native graph database supporting advanced analytics and ACID transactions.
+    description: Neo4j is an open-source, NoSQL, native graph database that provides an ACID-compliant transactional backend for your applications. The Enterprise Edition includes all that Community Edition has to offer, plus extra enterprise requirements such as backups, clustering, and failover abilities.
     maintainers:
     - name: Neo4j, Inc.
       url: https://neo4j.com
