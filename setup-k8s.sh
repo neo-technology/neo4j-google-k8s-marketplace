@@ -7,7 +7,7 @@ CLUSTER=lab
 ZONE=us-central1-a
 NODES=3
 API=beta
-NEO4J_VERSION=3.4.9-enterprise
+NEO4J_VERSION=3.4.11-enterprise
 
 gcloud beta container clusters create $CLUSTER \
     --zone "$ZONE" \
@@ -30,7 +30,7 @@ gcloud auth configure-docker
 kubectl create clusterrolebinding cluster-admin-binding \
   --clusterrole cluster-admin --user $(gcloud config get-value account)
 
-exec nohup kubectl proxy &
+# exec nohup kubectl proxy &
 
 # Create google-specific custom resources in the cluster.
 kubectl apply -f vendor/marketplace-k8s-app-tools/crd/app-crd.yaml
