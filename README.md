@@ -27,7 +27,7 @@ The solution is composed of two core containers:
 - The deployment container, which expands the helm chart and applies resources to a running k8s cluster See the `deployer` and `chart` directories.
 - The test container, which is layered on top of the deploy container and runs functional tests to ensure a working neo4j cluster.  See the `apptest` directory.
 - A set of solution containers deployed under the neo4j GCR. The primary solution container shares the name with the solution (causal cluster)
-and tracks the 3.4 release series, but is not versioned more specifically than that.  See the `causal-cluster` directory.
+and tracks the 3.5 release series, but is not versioned more specifically than that.  See the `causal-cluster` directory.
 
 ## Building the Deployment Container
  
@@ -94,7 +94,7 @@ These instructions mimic what the deployment container does.
 ```
 helm template chart/ \
    --set namespace=default \
-   --set image=gcr.io/neo4j-k8s-marketplace-public/causal-cluster:3.4 \
+   --set image=gcr.io/neo4j-k8s-marketplace-public/causal-cluster:3.5 \
    --set name=my-graph \
    --set neo4jPassword=mySecretPassword \
    --set authEnabled=true \

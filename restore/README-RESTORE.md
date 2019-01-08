@@ -50,7 +50,7 @@ set correctly given the way you created your secret.
 ```
 coreInitContainers: 
    - name: restore-from-file
-     image: gcr.io/neo4j-k8s-marketplace-public/causal-cluster/restore:3.4
+     image: gcr.io/neo4j-k8s-marketplace-public/causal-cluster/restore:3.5
      imagePullPolicy: Always
      volumeMounts:
      - name: datadir
@@ -111,7 +111,7 @@ cluster comes live, it will be populated with the data.
 
 ## Limitations
 
-As of Neo4j 3.4 series, data backups do not include authorization information for your cluster.
+As of Neo4j 3.5 series, data backups do not include authorization information for your cluster.
 That is, usernames/passwords associated with the graph are not included in the backup, and hence
 are not restored when you restore.
 

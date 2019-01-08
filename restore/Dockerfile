@@ -10,7 +10,7 @@ RUN echo "neo4j-enterprise neo4j/question select I ACCEPT" | debconf-set-selecti
 RUN echo "neo4j-enterprise neo4j/license note" | debconf-set-selections
 
 RUN apt-get update
-RUN apt-get install -y neo4j-enterprise=1:3.4.11 google-cloud-sdk unzip
+RUN apt-get install -y neo4j-enterprise=1:3.5.1 google-cloud-sdk unzip
 
 RUN mkdir /data
 ADD restore/restore.sh /scripts/restore.sh
