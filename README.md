@@ -92,17 +92,34 @@ These instructions mimic what the deployment container does.
 ### Helm Expansion
 
 ```
-helm template chart/ \
+DEPLOY_ID=$(head -c 10 /dev/urandom | md5 | head -c 5)
+SOLUTION_VERSION=3.5
+IMAGE=gcr.io/neo4j-k8s-marketplace-public/causal-cluster:$SOLUTION_VERSION
+APP_INSTANCE_NAME=deploy-$DEPLOY_ID
+CLUSTER_PASSWORD=mySecretPassword
+CORES=3
+READ_REPLICAS=0
+CPU_REQUEST=200m
+MEMORY_REQUEST=1Gi
+CPU_LIMIT=2
+MEMORY_LIMIT=4Gi
+VOLUME_SIZE=4Gi
+STORAGE_CLASS_NAME=standard
+
+helm template chart/ --name $APP_INSTANCE_NAME \
    --set namespace=default \
-   --set image=gcr.io/neo4j-k8s-marketplace-public/causal-cluster:3.5 \
-   --set name=my-graph \
-   --set neo4jPassword=mySecretPassword \
+   --set image=$IMAGE \
+   --set name=$APP_INSTANCE_NAME \
+   --set neo4jPassword=$CLUSTER_PASSWORD \
    --set authEnabled=true \
-   --set coreServers=3 \
-   --set readReplicaServers=0 \
-   --set cpuRequest=200m \
-   --set memoryRequest=1Gi \
-   --set volumeSize=2Gi \
+   --set coreServers=$CORES \
+   --set readReplicaServers=$READ_REPLICAS \
+   --set cpuRequest=$CPU_REQUEST \
+   --set memoryRequest=$MEMORY_REQUEST \
+   --set cpuLimit=$CPU_LIMIT \
+   --set memoryLimit=$MEMORY_LIMIT \
+   --set volumeSize=$VOLUME_SIZE \
+   --set volumeStorageClass=$STORAGE_CLASS_NAME \
    --set acceptLicenseAgreement=yes > expanded.yaml
 ```
 
