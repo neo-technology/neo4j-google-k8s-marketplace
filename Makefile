@@ -16,15 +16,15 @@ include ./var.Makefile
 
 $(info ---- TAG = $(TAG))
 
+APP_NAME ?= testrun
+
 APP_PARAMETERS ?= { \
-  "name": "$(APP_INSTANCE_NAME)", \
+  "name": "$(APP_NAME)", \
   "namespace": "$(NAMESPACE)", \
   "image": "$(REGISTRY):$(SOLUTION_VERSION)", \
   "coreServers": "3", \
   "readReplicaServers": "1" \
 }
-
-TESTER_IMAGE ?= $(REGISTRY)/elastic-gke-logging/tester:$(TAG)
 
 APP_TEST_PARAMETERS ?= { \
   "testerImage": "$(TESTER_IMAGE)" \
@@ -55,7 +55,7 @@ app/build:: .build/neo4j/causal-cluster \
 	    -f deployer/Dockerfile \
 	    .
 	docker push "$(APP_DEPLOYER_IMAGE)"
-	@date >> "$@"
+	@touch "$@"
 
 
 .build/neo4j/tester:   .build/var/TESTER_IMAGE \
