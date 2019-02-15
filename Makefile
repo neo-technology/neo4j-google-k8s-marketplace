@@ -1,28 +1,25 @@
-# Many targets in this makefile are prescribed by google's marketplace
-# tools; do not change make targets or .build files.   Additional valuable
-# targets can be found in $(tools_path)/app.Makefile where a lot of logic
-# is inherited.
-#################################################
-APP_NAME = neo4j
+NAME = neo4j
 REGISTRY = gcr.io/neo4j-k8s-marketplace-public/causal-cluster
+# Solution version
 SOLUTION_VERSION=$(shell cat chart/Chart.yaml | grep version: | sed 's/.*: //g')
+TAG=$(SOLUTION_VERSION)
 APP_DEPLOYER_IMAGE=$(REGISTRY)/deployer:$(SOLUTION_VERSION)
+APP_RESTORE_IMAGE=$(REGISTRY)/restore:$(SOLUTION_VERSION)
+APP_BACKUP_IMAGE=$(REGISTRY)/restore:$(SOLUTION_VERSION)
 NEO4J_VERSION=3.5.1-enterprise
-tools_path = ./vendor/marketplace-k8s-app-tools
+TESTER_IMAGE = $(REGISTRY)/tester:$(SOLUTION_VERSION)
 
-include $(tools_path)/crd.Makefile
-include $(tools_path)/gcloud.Makefile
-include $(tools_path)/marketplace.Makefile
-include $(tools_path)/ubbagent.Makefile
-include $(tools_path)/var.Makefile
-include $(tools_path)/app.Makefile
+include ./app.Makefile
+include ./crd.Makefile
+include ./gcloud.Makefile
+include ./var.Makefile
 
-APP_TESTER_IMAGE = $(REGISTRY)/tester:$(SOLUTION_VERSION)
+$(info ---- TAG = $(TAG))
 
-APP_INSTANCE_NAME ?= testrun
+APP_NAME ?= testrun
 
 APP_PARAMETERS ?= { \
-  "name": "$(APP_INSTANCE_NAME)", \
+  "name": "$(APP_NAME)", \
   "namespace": "$(NAMESPACE)", \
   "image": "$(REGISTRY):$(SOLUTION_VERSION)", \
   "coreServers": "3", \
@@ -30,62 +27,52 @@ APP_PARAMETERS ?= { \
 }
 
 APP_TEST_PARAMETERS ?= { \
-  "tester.image": "$(APP_TESTER_IMAGE)" \
+  "testerImage": "$(TESTER_IMAGE)" \
 }
 
-app/build:: app/image .build/deployer .build/tester .build/backup .build/restore
+app/build:: .build/neo4j/causal-cluster \
+            .build/neo4j/deployer \
+            .build/neo4j/tester \
+			.build/neo4j/backup \
+			.build/neo4j/restore
 
-app/build-test:: app/build .build/tester
+.build/neo4j: | .build
+	mkdir -p "$@"
 
-app/image:  causal-cluster/*
-	docker pull neo4j:$(NEO4J_VERSION)
-	docker build --tag $(REGISTRY):$(SOLUTION_VERSION) \
-		--build-arg NEO4J_VERSION="$(NEO4J_VERSION)" \
-		-f causal-cluster/Dockerfile \
-		.
-	docker push $(REGISTRY):$(SOLUTION_VERSION)
-	# Not needed as plugins are included in solution container
-	#docker pull appropriate/curl:latest
-	#docker tag appropriate/curl:latest $(REGISTRY)/appropriate/curl:latest
-	#docker push $(REGISTRY)/appropriate/curl:latest
 
-app/backup:: .build/backup
-
-app/restore:: .build/restore
-
-app/deployer:: .build/deployer
-
-.build/deployer: schema.yaml \
+.build/neo4j/deployer: schema.yaml \
 				 deployer/* \
 				 chart/* \
 				 chart/templates/* \
 				 apptest/deployer/* \
-				 .build/marketplace/deployer/helm \
 				 .build/var/REGISTRY
 	echo $(SOLUTION_VERSION)
 	docker build \
 	    --build-arg REGISTRY=$(REGISTRY) \
 		--build-arg TAG=$(SOLUTION_VERSION) \
+	    --build-arg MARKETPLACE_TOOLS_TAG="$(MARKETPLACE_TOOLS_TAG)" \
 	    --tag "$(APP_DEPLOYER_IMAGE)" \
 	    -f deployer/Dockerfile \
 	    .
 	docker push "$(APP_DEPLOYER_IMAGE)"
-	@date >> "$@"
+	@touch "$@"
 
-.build/tester: apptest/deployer/* apptest/deployer/neo4j/* apptest/deployer/neo4j/templates/* .build/var/REGISTRY
-	$(call print_target, $@)
+
+.build/neo4j/tester:   .build/var/TESTER_IMAGE \
+                $(shell find apptest -type f) | .build/neo4j
+	$(call print_target,$@)
 	docker build \
-	   --tag "$(APP_TESTER_IMAGE)" \
+	   --tag "$(TESTER_IMAGE)" \
+	   --build-arg MARKETPLACE_TOOLS_TAG="$(MARKETPLACE_TOOLS_TAG)" \
 	   -f apptest/tester/Dockerfile \
 	   .
-	docker push "$(APP_TESTER_IMAGE)"
-	@date >> "$@"
+	docker push "$(TESTER_IMAGE)"
+	@touch "$@"
 
-APP_RESTORE_IMAGE=$(REGISTRY)/restore:$(SOLUTION_VERSION)
-
-.build/restore: restore/*
+.build/neo4j/restore: restore/*
 	docker build \
 		--tag "$(APP_RESTORE_IMAGE)" \
+	    --build-arg MARKETPLACE_TOOLS_TAG="$(MARKETPLACE_TOOLS_TAG)" \
 		-f restore/Dockerfile \
 		.
 	docker push "$(APP_RESTORE_IMAGE)"
@@ -93,11 +80,21 @@ APP_RESTORE_IMAGE=$(REGISTRY)/restore:$(SOLUTION_VERSION)
 
 APP_BACKUP_IMAGE=$(REGISTRY)/restore:$(SOLUTION_VERSION)
 
-.build/backup: backup/*
+.build/neo4j/backup: backup/*
 	docker build \
 		--tag "$(APP_BACKUP_IMAGE)" \
+  	    --build-arg MARKETPLACE_TOOLS_TAG="$(MARKETPLACE_TOOLS_TAG)" \
 		-f backup/Dockerfile \
 		.
 	docker push "$(APP_BACKUP_IMAGE)"
 	@date >> "$@"
+
+.build/neo4j/causal-cluster:  causal-cluster/*
+	docker pull neo4j:$(NEO4J_VERSION)
+	docker build --tag $(REGISTRY):$(SOLUTION_VERSION) \
+		--build-arg NEO4J_VERSION="$(NEO4J_VERSION)" \
+  	    --build-arg MARKETPLACE_TOOLS_TAG="$(MARKETPLACE_TOOLS_TAG)" \
+		-f causal-cluster/Dockerfile \
+		.
+	docker push $(REGISTRY):$(SOLUTION_VERSION)
 
