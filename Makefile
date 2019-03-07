@@ -6,7 +6,7 @@ TAG=$(SOLUTION_VERSION)
 APP_DEPLOYER_IMAGE=$(REGISTRY)/deployer:$(SOLUTION_VERSION)
 APP_RESTORE_IMAGE=$(REGISTRY)/restore:$(SOLUTION_VERSION)
 APP_BACKUP_IMAGE=$(REGISTRY)/restore:$(SOLUTION_VERSION)
-NEO4J_VERSION=3.5.1-enterprise
+NEO4J_VERSION=3.5.3-enterprise
 TESTER_IMAGE = $(REGISTRY)/tester:$(SOLUTION_VERSION)
 
 include ./app.Makefile
@@ -27,10 +27,11 @@ APP_PARAMETERS ?= { \
 }
 
 APP_TEST_PARAMETERS ?= { \
-  "testerImage": "$(TESTER_IMAGE)" \
+  "tester.image": "$(TESTER_IMAGE)" \
 }
 
-app/build:: .build/neo4j/causal-cluster \
+app/build:: .build/neo4j \
+            .build/neo4j/causal-cluster \
             .build/neo4j/deployer \
             .build/neo4j/tester \
 			.build/neo4j/backup \
