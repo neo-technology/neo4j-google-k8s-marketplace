@@ -11,15 +11,15 @@ if [ -z $BUCKET ]; then
 fi
 
 if [ -z $HEAP_SIZE ] ; then
-    HEAP_SIZE=2G
+    export HEAP_SIZE=2G
 fi
 
 if [ -z $PAGE_CACHE ]; then
-    PAGE_CACHE=4G
+    export PAGE_CACHE=4G
 fi
 
 if [ -z $BACKUP_NAME ]; then
-    BACKUP_NAME=graph.db-backup
+    export BACKUP_NAME=graph.db-backup
 fi
 
 BACKUP_SET="$BACKUP_NAME-$(date "+%Y-%m-%d-%H:%M:%S")"

@@ -72,6 +72,8 @@ spec:
             export NEO4J_dbms_jvm_additional="-Dunsupported.dbms.udc.source=google-gke-core"
 
             export NEO4J_dbms_security_procedures_unrestricted="apoc.*,algo.*"
+            export NEO4J_dbms_connector_bolt_tls__level=OPTIONAL
+            export NEO4J_apoc_import_file_enabled=true
 
             if [ "${AUTH_ENABLED:-}" == "true" ]; then
               export NEO4J_AUTH="neo4j/${NEO4J_SECRETS_PASSWORD}"

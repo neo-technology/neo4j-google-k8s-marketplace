@@ -27,7 +27,7 @@ The solution is composed of two core containers:
 - The deployment container, which expands the helm chart and applies resources to a running k8s cluster See the `deployer` and `chart` directories.
 - The test container, which is layered on top of the deploy container and runs functional tests to ensure a working neo4j cluster.  See the `apptest` directory.
 - A set of solution containers deployed under the neo4j GCR. The primary solution container shares the name with the solution (causal cluster)
-and tracks the 3.4 release series, but is not versioned more specifically than that.  See the `causal-cluster` directory.
+and tracks the 3.5 release series, but is not versioned more specifically than that.  See the `causal-cluster` directory.
 
 ## Building the Deployment Container
  
@@ -92,17 +92,34 @@ These instructions mimic what the deployment container does.
 ### Helm Expansion
 
 ```
-helm template chart/ \
+DEPLOY_ID=$(head -c 10 /dev/urandom | md5 | head -c 5)
+SOLUTION_VERSION=3.5
+IMAGE=gcr.io/neo4j-k8s-marketplace-public/causal-cluster:$SOLUTION_VERSION
+APP_INSTANCE_NAME=deploy-$DEPLOY_ID
+CLUSTER_PASSWORD=mySecretPassword
+CORES=3
+READ_REPLICAS=0
+CPU_REQUEST=200m
+MEMORY_REQUEST=1Gi
+CPU_LIMIT=2
+MEMORY_LIMIT=4Gi
+VOLUME_SIZE=4Gi
+STORAGE_CLASS_NAME=standard
+
+helm template chart/ --name $APP_INSTANCE_NAME \
    --set namespace=default \
-   --set image=gcr.io/neo4j-k8s-marketplace-public/causal-cluster:3.4 \
-   --set name=my-graph \
-   --set neo4jPassword=mySecretPassword \
+   --set image=$IMAGE \
+   --set name=$APP_INSTANCE_NAME \
+   --set neo4jPassword=$CLUSTER_PASSWORD \
    --set authEnabled=true \
-   --set coreServers=3 \
-   --set readReplicaServers=0 \
-   --set cpuRequest=200m \
-   --set memoryRequest=1Gi \
-   --set volumeSize=2Gi \
+   --set coreServers=$CORES \
+   --set readReplicaServers=$READ_REPLICAS \
+   --set cpuRequest=$CPU_REQUEST \
+   --set memoryRequest=$MEMORY_REQUEST \
+   --set cpuLimit=$CPU_LIMIT \
+   --set memoryLimit=$MEMORY_LIMIT \
+   --set volumeSize=$VOLUME_SIZE \
+   --set volumeStorageClass=$STORAGE_CLASS_NAME \
    --set acceptLicenseAgreement=yes > expanded.yaml
 ```
 

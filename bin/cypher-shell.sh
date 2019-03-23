@@ -10,8 +10,11 @@ fi
 
 SOLUTION_VERSION=$(cat chart/Chart.yaml | grep version: | sed 's/.*: //g')
 
+DEV_REGISTRY=gcr.io/neo4j-k8s-marketplace-public/causal-cluster
+PROD_REGISTRY=gcr.io/cloud-marketplace/neo4j-public/causal-cluster-k8s
+
 kubectl run -it --rm cypher-shell \
-   --image=gcr.io/cloud-marketplace/neo4j-public/causal-cluster-k8s:$SOLUTION_VERSION \
+   --image=$PROD_REGISTRY:$SOLUTION_VERSION \
    --restart=Never \
    --namespace=default \
    --command -- ./bin/cypher-shell -u neo4j \
