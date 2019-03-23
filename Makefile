@@ -29,9 +29,7 @@ APP_PARAMETERS ?= { \
   "readReplicaServers": "1" \
 }
 
-APP_TEST_PARAMETERS ?= { \
-  "tester.image": "$(APP_TESTER_IMAGE)" \
-}
+APP_TEST_PARAMETERS ?= { }
 
 app/build:: app/image .build/deployer .build/tester .build/backup .build/restore
 
