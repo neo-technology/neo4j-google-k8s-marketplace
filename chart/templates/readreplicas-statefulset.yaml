@@ -99,6 +99,15 @@ spec:
         # solution container.        
         #- name: plugins
         #  mountPath: /plugins
+        readinessProbe:
+          tcpSocket:
+            port: {{ .Values.ports.bolt }}
+          initialDelaySeconds: 30
+          periodSeconds: 3
+        livenessProbe:
+          initialDelaySeconds: 60
+          tcpSocket:
+            port: {{ .Values.ports.bolt }}
         resources:
           requests:
             cpu: "{{ .Values.cpuRequest }}"

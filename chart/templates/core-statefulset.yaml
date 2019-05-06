@@ -108,15 +108,15 @@ spec:
         # solution container.
         #- name: plugins
         #  mountPath: /plugins
-        #readinessProbe:
-        #  httpGet:
-        #    path: /
-        #    port: {{ .Values.ports.http }}
-        #    httpHeaders:
-        #    - name: X-Custom-Header
-        #      value: "YouThere?"
-        #  initialDelaySeconds: 30
-        #  periodSeconds: 3
+        readinessProbe:
+          tcpSocket:
+            port: {{ .Values.ports.bolt }}
+          initialDelaySeconds: 30
+          periodSeconds: 3
+        livenessProbe:
+          initialDelaySeconds: 60
+          tcpSocket:
+            port: {{ .Values.ports.bolt }}
         resources:
           requests:
             cpu: "{{ .Values.cpuRequest }}"
