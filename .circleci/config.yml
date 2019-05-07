@@ -109,9 +109,11 @@ jobs:
             PROJECT=neo4j-k8s-marketplace-public
             ZONE=us-east1-b
 
+            # Delete cluster async so the build doesn't have to wait.
             gcloud beta container clusters delete $CLUSTER --quiet \
                 --project $PROJECT \
-                --zone $ZONE
+                --zone $ZONE \
+                --async
 
       - store_artifacts:
           path: target/
