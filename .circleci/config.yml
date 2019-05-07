@@ -90,7 +90,7 @@ jobs:
              export PATH=.:$PATH
              BUILD=-$CIRCLE_BRANCH-$CIRCLE_SHA1
              mkdir -p target && echo $BUILD | tee -a target/BUILD.txt
-             make BUILD=$BUILD build | tee -a target/BUILD.txt
+             make BUILD=$BUILD app/build | tee -a target/BUILD.txt
 
       - run:
           name: Test
