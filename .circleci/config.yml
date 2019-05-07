@@ -1,0 +1,117 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: debian:stretch
+
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Tooling pre-requisites
+          command: |
+            # Secure software install
+            apt-get update && apt-get install -y apt-transport-https ca-certificates curl gnupg2 software-properties-common
+            
+            # Google Cloud stuff
+            export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
+            echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+            curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+            
+            # Docker stuff
+            curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
+            add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
+
+            EXTRA_NEEDED_TOOLS="wget make gettext-base jq"
+            DOCKER="docker-ce docker-ce-cli containerd.io"
+
+            apt-get update && apt-get install -y \
+               google-cloud-sdk \
+               $DOCKER \
+               $EXTRA_NEEDED_TOOLS
+
+      - run: 
+          name: Setup GCP Tooling for Container Registry
+          command: |
+            echo $GCLOUD_SERVICE_KEY > service-key.json
+            gcloud auth activate-service-account \
+                k8s-marketplace-neo4j-sa@neo4j-k8s-marketplace-public.iam.gserviceaccount.com \
+                --key-file=service-key.json
+            gcloud auth configure-docker
+
+      - run:
+          name: GKE Environment Setup / Auth 
+          command: |
+            PROJECT=neo4j-k8s-marketplace-public
+            CLUSTER=build-$CIRCLE_BUILD_NUM
+            ZONE=us-east1-b
+            NODES=4
+            API=beta
+            NEO4J_VERSION=3.5.5-enterprise
+
+            gcloud beta container clusters create $CLUSTER \
+                --zone "$ZONE" \
+                --project $PROJECT \
+                --machine-type "n1-standard-4" \
+                --num-nodes $NODES \
+                --max-nodes $NODES \
+                --enable-autoscaling
+                
+            gcloud container clusters get-credentials $CLUSTER \
+              --zone $ZONE \
+              --project $PROJECT
+
+            # Configure local auth of docker so that we can use regular
+            # docker commands to push/pull from our GCR setup.
+            gcloud auth configure-docker
+
+      - run:
+          name: Kubectl Setup
+          command: |
+             curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+             chmod +x kubectl
+             # Bootstrap RBAC cluster-admin for your user.
+             # More info: https://cloud.google.com/kubernetes-engine/docs/how-to/role-based-access-control
+             ./kubectl create clusterrolebinding cluster-admin-binding \
+               --clusterrole cluster-admin --user $(gcloud config get-value account)
+
+      - run:
+          name: Install Helm
+          command: |
+             curl -LO https://storage.googleapis.com/kubernetes-helm/helm-v2.13.1-linux-amd64.tar.gz
+             tar zxvf helm-v2.13.1-linux-amd64.tar.gz
+             mv linux-amd64/helm .
+             ./helm version
+             ./helm init --client-only
+
+      - run:
+          name: Build 
+          command: |
+             # Add cwd to path to pick up the helm binary we installed.
+             export PATH=.:$PATH
+             BUILD=-$CIRCLE_BRANCH-$CIRCLE_SHA1
+             mkdir -p target && echo $BUILD | tee -a target/BUILD.txt
+             make BUILD=$BUILD build | tee -a target/BUILD.txt
+
+      - run:
+          name: Test
+          command: |
+             # Add cwd to path to pick up the helm binary we installed.
+             export PATH=.:$PATH
+             BUILD=-$CIRCLE_BRANCH-$CIRCLE_SHA1
+             make BUILD=$BUILD NAMESPACE=build-$CIRCLE_BUILD_NUM app/verify | tee -a target/INSTALL.txt
+
+      - run:
+          name: Uninstall / Cleanup
+          # Make sure to always run this, particularly if the test fails
+          when: always
+          command: |
+            CLUSTER=build-$CIRCLE_BUILD_NUM
+            PROJECT=neo4j-k8s-marketplace-public
+            gcloud beta container clusters delete $CLUSTER --quiet --project $PROJECT
+
+      - store_artifacts:
+          path: target/
+      
+      - store_artifacts:
+          path: .build/
