@@ -81,7 +81,6 @@ jobs:
              curl -LO https://storage.googleapis.com/kubernetes-helm/helm-v2.13.1-linux-amd64.tar.gz
              tar zxvf helm-v2.13.1-linux-amd64.tar.gz
              mv linux-amd64/helm .
-             ./helm version
              ./helm init --client-only
 
       - run:
@@ -108,7 +107,11 @@ jobs:
           command: |
             CLUSTER=build-$CIRCLE_BUILD_NUM
             PROJECT=neo4j-k8s-marketplace-public
-            gcloud beta container clusters delete $CLUSTER --quiet --project $PROJECT
+            ZONE=us-east1-b
+
+            gcloud beta container clusters delete $CLUSTER --quiet \
+                --project $PROJECT \
+                --zone $ZONE
 
       - store_artifacts:
           path: target/
