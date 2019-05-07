@@ -1,13 +1,14 @@
 NAME = neo4j
 REGISTRY = gcr.io/neo4j-k8s-marketplace-public/causal-cluster
 # Solution version
-SOLUTION_VERSION=$(shell cat chart/Chart.yaml | grep version: | sed 's/.*: //g')
+SOLUTION_VERSION=$(shell cat chart/Chart.yaml | grep version: | sed 's/.*: //g')$(BUILD)
 TAG=$(SOLUTION_VERSION)
 APP_DEPLOYER_IMAGE=$(REGISTRY)/deployer:$(SOLUTION_VERSION)
 APP_RESTORE_IMAGE=$(REGISTRY)/restore:$(SOLUTION_VERSION)
 APP_BACKUP_IMAGE=$(REGISTRY)/restore:$(SOLUTION_VERSION)
 NEO4J_VERSION=3.5.5-enterprise
 TESTER_IMAGE = $(REGISTRY)/tester:$(SOLUTION_VERSION)
+NAMESPACE ?= default
 
 include ./app.Makefile
 include ./crd.Makefile
