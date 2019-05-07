@@ -44,6 +44,7 @@ jobs:
                 k8s-marketplace-neo4j-sa@neo4j-k8s-marketplace-public.iam.gserviceaccount.com \
                 --key-file=service-key.json
             gcloud auth configure-docker
+            ls -l $HOME/.config/gcloud
 
       - run:
           name: GKE Environment Setup / Auth 
