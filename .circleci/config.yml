@@ -49,7 +49,7 @@ jobs:
             echo "GCloud Config"
             ls -l $HOME/.config/gcloud
             echo "Docker"
-            find /var/run | grep -i docker
+            find /var/run || true
 
       - run:
           name: GKE Environment Setup / Auth 
