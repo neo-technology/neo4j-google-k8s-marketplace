@@ -6,7 +6,6 @@ jobs:
 
     steps:
       - checkout
-      - setup_remote_docker
       - run:
           name: Tooling pre-requisites
           command: |
@@ -27,7 +26,10 @@ jobs:
 
             apt-get update && apt-get install -y \
                google-cloud-sdk \
+               $DOCKER \
                $EXTRA_NEEDED_TOOLS
+
+      - setup_remote_docker
 
       - run:
           name: "Pull Submodules"
@@ -46,7 +48,7 @@ jobs:
             gcloud auth configure-docker --quiet
             echo "GCloud Config"
             ls -l $HOME/.config/gcloud
-            echo "Docker config"
+            echo "Docker"
             find /var/run | grep -i docker
 
       - run:
