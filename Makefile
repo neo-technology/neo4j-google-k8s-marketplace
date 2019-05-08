@@ -27,8 +27,9 @@ APP_PARAMETERS ?= { \
   "readReplicaServers": "1" \
 }
 
-
-APP_TEST_PARAMETERS ?= { }
+APP_TEST_PARAMETERS ?= { \
+	"tester.image": "$(TESTER_IMAGE)" \
+}
 
 app/build:: .build/neo4j \
             .build/neo4j/causal-cluster \
