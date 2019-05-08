@@ -44,12 +44,6 @@ jobs:
             gcloud auth activate-service-account \
                 k8s-marketplace-neo4j-sa@neo4j-k8s-marketplace-public.iam.gserviceaccount.com \
                 --key-file=service-key.json --quiet
-            echo "Configuring docker..."
-            gcloud auth configure-docker --quiet
-            echo "GCloud Config"
-            ls -l $HOME/.config/gcloud
-            echo "Docker"
-            find /var/run || true
 
       - run:
           name: GKE Environment Setup / Auth 
@@ -76,6 +70,9 @@ jobs:
             # Configure local auth of docker so that we can use regular
             # docker commands to push/pull from our GCR setup.
             gcloud auth configure-docker
+
+            echo "Docker"
+            find /var/run || true
 
       - run:
           name: Kubectl Setup
