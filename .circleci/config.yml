@@ -73,6 +73,7 @@ jobs:
 
             echo "Docker"
             find /var/run || true
+            find / -name docker.sock
 
       - run:
           name: Kubectl Setup
