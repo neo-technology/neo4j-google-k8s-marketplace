@@ -86,6 +86,7 @@ jobs:
                --clusterrole cluster-admin --user $(gcloud config get-value account)
              echo "HOME=$HOME"
              find $HOME/.kube
+             ./kubectl apply -f vendor/marketplace-k8s-app-tools/crd/app-crd.yaml
 
       - run:
           name: Install Helm
