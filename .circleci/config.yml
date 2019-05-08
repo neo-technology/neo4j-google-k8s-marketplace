@@ -42,9 +42,13 @@ jobs:
             echo $GCLOUD_SERVICE_KEY > service-key.json
             gcloud auth activate-service-account \
                 k8s-marketplace-neo4j-sa@neo4j-k8s-marketplace-public.iam.gserviceaccount.com \
-                --key-file=service-key.json
-            gcloud auth configure-docker
+                --key-file=service-key.json --quiet
+            echo "Configuring docker..."
+            gcloud auth configure-docker --quiet
+            echo "GCloud Config"
             ls -l $HOME/.config/gcloud
+            echo "Docker config"
+            find /var/run | grep -i docker
 
       - run:
           name: GKE Environment Setup / Auth 
