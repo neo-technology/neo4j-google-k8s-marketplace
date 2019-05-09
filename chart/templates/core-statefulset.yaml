@@ -69,7 +69,7 @@ spec:
             export NEO4J_dbms_connector_https_listen__address=0.0.0.0:{{ .Values.ports.https }}
             export NEO4J_dbms_backup_enabled=true
             export NEO4J_dbms_backup_address=0.0.0.0:{{ .Values.ports.backup }}
-            export NEO4J_dbms_jvm_additional="-Dunsupported.dbms.udc.source=google-gke-core"
+            export NEO4J_dbms_jvm_additional="-XX:+ExitOnOutOfMemoryError -Dunsupported.dbms.udc.source=google-gke-core"
 
             export NEO4J_dbms_security_procedures_unrestricted="apoc.*,algo.*"
             export NEO4J_dbms_connector_bolt_tls__level=OPTIONAL
