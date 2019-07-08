@@ -5,7 +5,6 @@ jobs:
       - image: debian:stretch
 
     steps:
-      - checkout
       - run:
           name: Tooling pre-requisites
           command: |
@@ -24,11 +23,12 @@ jobs:
             EXTRA_NEEDED_TOOLS="wget make gettext-base jq git"
             DOCKER="docker-ce docker-ce-cli containerd.io"
 
-            apt-get update && apt-get install -y \
+            apt-get update && apt-get install -y git \
                google-cloud-sdk \
                $DOCKER \
                $EXTRA_NEEDED_TOOLS
 
+      - checkout
       - setup_remote_docker
 
       - run:
