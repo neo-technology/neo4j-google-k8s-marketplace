@@ -5,7 +5,7 @@ FROM neo4j:${NEO4J_VERSION}
 # Our app solution container is basically neo4j's public docker image, with some additions:
 
 # SSH client, for various networking tricks (proxying/port forwarding)
-RUN apt-install -y openssh-client
+RUN apt install -y openssh-client
 
 # Copies of licenses required for google marketplace, tied to open source review
 RUN mkdir /licensing
