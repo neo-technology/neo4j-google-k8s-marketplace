@@ -64,7 +64,7 @@ spec:
             export NEO4J_dbms_connector_https_listen__address=0.0.0.0:{{ .Values.ports.https }}
             export NEO4J_dbms_backup_enabled=true
             export NEO4J_dbms_backup_address=0.0.0.0:{{ .Values.ports.backup }}            
-            export NEO4J_dbms_jvm_additional="-Dunsupported.dbms.udc.source=google-gke-readreplica"
+            export NEO4J_dbms_jvm_additional="-XX:+ExitOnOutOfMemoryError -Dunsupported.dbms.udc.source=google-gke-readreplica"
 
             export NEO4J_dbms_security_procedures_unrestricted="apoc.*,algo.*"
             export NEO4J_dbms_connector_bolt_tls__level=OPTIONAL
@@ -99,6 +99,15 @@ spec:
         # solution container.        
         #- name: plugins
         #  mountPath: /plugins
+        readinessProbe:
+          tcpSocket:
+            port: {{ .Values.ports.bolt }}
+          initialDelaySeconds: 30
+          periodSeconds: 3
+        livenessProbe:
+          initialDelaySeconds: 60
+          tcpSocket:
+            port: {{ .Values.ports.bolt }}
         resources:
           requests:
             cpu: "{{ .Values.cpuRequest }}"

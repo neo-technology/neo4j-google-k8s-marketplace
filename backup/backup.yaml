@@ -40,4 +40,4 @@ metadata:
   annotations:
     marketplace.cloud.google.com/verification: test
 data:
-  credentials.json: ewogIC
+  credentials.json: ewog
