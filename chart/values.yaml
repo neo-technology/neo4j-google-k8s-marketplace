@@ -10,7 +10,7 @@ image: "gcr.io/neo4j-k8s-marketplace-public/causal-cluster:3.5"
 # Version for the solution container
 imageTag: "3.5"
 # Neo4j version the solution container is based on.
-neo4jVersion: "3.5.7"
+neo4jVersion: "3.5.8"
 ubbAgentImage: "gcr.io/neo4j-k8s-marketplace-public/causal-cluster/ubbagent:3.5"
 imagePullPolicy: "Always"
 # imagePullSecret: registry-secret
