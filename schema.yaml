@@ -55,6 +55,7 @@ properties:
   volumeStorageClass:
     title: Storage class for nodes, SSD storage recommended.
     type: string
+    default: standard
     x-google-marketplace:
       type: STORAGE_CLASS
       storageClass:
