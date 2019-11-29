@@ -1,7 +1,7 @@
 name: neo4j
 home: https://www.neo4j.com
 version: 3.5
-appVersion: 3.5.12
+appVersion: 3.5.13
 description: Neo4j is the world's leading graph database
 icon: http://info.neo4j.com/rs/773-GON-065/images/neo4j_logo.png
 sources:
