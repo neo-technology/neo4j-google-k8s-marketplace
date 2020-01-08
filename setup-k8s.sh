@@ -7,7 +7,7 @@ CLUSTER=lab
 ZONE=us-east1-b
 NODES=4
 API=beta
-NEO4J_VERSION=3.5.13-enterprise
+NEO4J_VERSION=3.5.14-enterprise
 
 gcloud beta container clusters create $CLUSTER \
     --zone "$ZONE" \
