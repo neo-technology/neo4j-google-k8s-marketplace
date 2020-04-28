@@ -37,13 +37,13 @@ spec:
           - name: NEO4J_dbms_mode
             value: CORE
           - name: NEO4J_causal__clustering_discovery__type
-            value: DNS
+            value: LIST
           - name: NEO4J_causal__clustering_minimum__core__cluster__size__at__formation
             value: "3"
           - name: NEO4J_causal__clustering_minimum__core__cluster__size__at__runtime
             value: "3"
           - name: NEO4J_causal__clustering_initial__discovery__members
-            value: "{{ template "neo4j.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:5000"
+            value: "{{ template "neo4j.fullname" . }}-core-0.{{ template "neo4j.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:5000,{{ template "neo4j.fullname" . }}-core-1.{{ template "neo4j.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:5000,{{ template "neo4j.fullname" . }}-core-2.{{ template "neo4j.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:5000"
 {{- end }}
           {{- if .Values.authEnabled }}
           - name: NEO4J_SECRETS_PASSWORD
@@ -59,19 +59,23 @@ spec:
           - "/bin/bash"
           - "-c"
           - |
-            export NEO4J_dbms_connectors_default__advertised__address=$(hostname -f)
+            export NEO4J_dbms_default__advertised__address=$(hostname -f)
             export NEO4J_causal__clustering_discovery__advertised__address=$(hostname -f):5000
             export NEO4J_causal__clustering_transaction__advertised__address=$(hostname -f):6000
+            export NEO4J_causal__clustering_minimum__core__cluster__size__at__runtime: "2"
             export NEO4J_causal__clustering_raft__advertised__address=$(hostname -f):7000
             export NEO4J_dbms_connector_http_listen__address=0.0.0.0:{{ .Values.ports.bolt }}
             export NEO4J_dbms_connector_http_listen__address=0.0.0.0:{{ .Values.ports.http }}
-            export NEO4J_dbms_connector_https_enabled=true            
+            export NEO4J_dbms_connector_http_advertised__address=:{{ .Values.ports.http }}
+            export NEO4J_dbms_connector_https_enabled=true
             export NEO4J_dbms_connector_https_listen__address=0.0.0.0:{{ .Values.ports.https }}
+            export NEO4J_dbms_connector_https_advertised__address=:{{ .Values.ports.https }}
+            export NEO4J_dbms_ssl_policy_https_client__auth=NONE
             export NEO4J_dbms_backup_enabled=true
             export NEO4J_dbms_backup_address=0.0.0.0:{{ .Values.ports.backup }}
             export NEO4J_dbms_jvm_additional="-XX:+ExitOnOutOfMemoryError -Dunsupported.dbms.udc.source=google-gke-core"
 
-            export NEO4J_dbms_security_procedures_unrestricted="apoc.*,algo.*"
+            export NEO4J_dbms_security_procedures_unrestricted="apoc.*
             export NEO4J_dbms_connector_bolt_tls__level=OPTIONAL
             export NEO4J_apoc_import_file_enabled=true
 
@@ -110,13 +114,13 @@ spec:
         #  mountPath: /plugins
         readinessProbe:
           tcpSocket:
-            port: {{ .Values.ports.bolt }}
+            port: 7687
           initialDelaySeconds: 30
           periodSeconds: 3
         livenessProbe:
           initialDelaySeconds: 60
           tcpSocket:
-            port: {{ .Values.ports.bolt }}
+            port: 7687
         resources:
           requests:
             cpu: "{{ .Values.cpuRequest }}"
