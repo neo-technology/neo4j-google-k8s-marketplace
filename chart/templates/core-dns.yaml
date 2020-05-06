@@ -9,7 +9,7 @@ metadata:
     component: core
 spec:
   clusterIP: None
-  publishNotReadyAddresses: true 
+  publishNotReadyAddresses: true
   ports:
     - name: http
       protocol: TCP

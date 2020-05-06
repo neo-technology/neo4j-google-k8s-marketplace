@@ -3,6 +3,8 @@ build/
 nohup.out
 expanded.yaml
 chart/templates/tests
+.idea/
+VERIFY.log
 
 # Temporary diffs off of marketplacetools to make things work pending Google PRs
 diff
