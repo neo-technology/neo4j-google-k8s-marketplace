@@ -66,7 +66,7 @@ spec:
             export NEO4J_dbms_backup_address=0.0.0.0:{{ .Values.ports.backup }}            
             export NEO4J_dbms_jvm_additional="-XX:+ExitOnOutOfMemoryError -Dunsupported.dbms.udc.source=google-gke-readreplica"
 
-            export NEO4J_dbms_security_procedures_unrestricted="apoc.*,algo.*"
+            export NEO4J_dbms_security_procedures_unrestricted="apoc.*"
             export NEO4J_dbms_connector_bolt_tls__level=OPTIONAL
             export NEO4J_apoc_import_file_enabled=true
 

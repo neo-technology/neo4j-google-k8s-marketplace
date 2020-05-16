@@ -51,7 +51,7 @@ spec:
       APP_INSTANCE_NAME=my-graph
       NEO4J_PASSWORD=$(kubectl get secrets $APP_INSTANCE_NAME-neo4j-secrets -o yaml | grep neo4j-password: | sed 's/.*neo4j-password: *//' | base64 --decode)
       kubectl run -it --rm cypher-shell \
-        --image=gcr.io/cloud-marketplace/neo4j-public/causal-cluster-k8s:3.5 \
+        --image=gcr.io/cloud-marketplace/neo4j-public/causal-cluster-k8s:4.0 \
         --restart=Never \
         --namespace=default \
         --command -- ./bin/cypher-shell -u neo4j \
