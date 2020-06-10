@@ -5,7 +5,7 @@ SOLUTION_VERSION=$(shell cat chart/Chart.yaml | grep version: | sed 's/.*: //g')
 TAG=$(SOLUTION_VERSION)
 APP_DEPLOYER_IMAGE=$(REGISTRY)/deployer:$(SOLUTION_VERSION)
 APP_RESTORE_IMAGE=$(REGISTRY)/restore:$(SOLUTION_VERSION)
-APP_BACKUP_IMAGE=$(REGISTRY)/restore:$(SOLUTION_VERSION)
+APP_BACKUP_IMAGE=$(REGISTRY)/backup:$(SOLUTION_VERSION)
 NEO4J_VERSION=3.5.14-enterprise
 TESTER_IMAGE = $(REGISTRY)/tester:$(SOLUTION_VERSION)
 NAMESPACE ?= default
@@ -80,7 +80,7 @@ app/build:: .build/neo4j \
 	docker push "$(APP_RESTORE_IMAGE)"
 	@date >> "$@"
 
-APP_BACKUP_IMAGE=$(REGISTRY)/restore:$(SOLUTION_VERSION)
+APP_BACKUP_IMAGE=$(REGISTRY)/backup:$(SOLUTION_VERSION)
 
 .build/neo4j/backup: backup/*
 	docker build \
