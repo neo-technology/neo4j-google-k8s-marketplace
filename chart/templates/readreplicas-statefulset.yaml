@@ -46,8 +46,9 @@ spec:
             value: "3"
           - name: NEO4J_causal__clustering_minimum__core__cluster__size__at__runtime
             value: "3"
-space }}.svc.cluster.local:5000,{{ template "neo4j.fullname" . }}-core-1.{{ template "neo4j.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:5000,{{ template "neo4j.fullname" . }}-core-2.{{ template "neo4j.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:5000"
-{{- end }}
+          - name: NEO4J_causal__clustering_initial__discovery__members
+            value: "{{ template "neo4j.fullname" . }}-core-0.{{ template "neo4j.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:5000,{{ template "neo4j.fullname" . }}-core-1.{{ template "neo4j.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:5000,{{ template "neo4j.fullname" . }}-core-2.{{ template "neo4j.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:5000"
+  {{- end }}
           {{- if .Values.authEnabled }}
           - name: NEO4J_SECRETS_PASSWORD
             valueFrom:
