@@ -43,7 +43,7 @@ data:
   run.sh: |-
     set -x
     host="{{ .Release.Name }}-neo4j.{{ .Release.Namespace }}.svc.cluster.local"
-    replica_host="{{ .Release.Name }}-neo4j-readreplica-svc.{{ .Release.Namespace }}.svc.cluster.local"
+    replica_host="{{ .Release.Name }}-neo4j-readreplica.{{ .Release.Namespace }}.svc.cluster.local"
     echo "HOST $host"
     # This endpoint proves availability of the overall service
     endpoint="http://$host:{{ .Values.ports.http }}"
