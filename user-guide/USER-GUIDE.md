@@ -64,7 +64,7 @@ This password applies for the base administrative user named “neo4j”.
 All neo4j cluster nodes inside of GKE will get private DNS names that you can use to access them.  Host names will be generated as follows.   `$NAMESPACE` refers to the kubernetes namespace used to deploy neo4j, and `$APP_INSTANCE_NAME` refers to the name it was deployed under.  The variable `$N` refers to the individual cluster node.  For clusters with 3 core nodes, $N could be 0, 1, or 2, and a total of three hostnames will be valid.
 
 - Core Host:  `$APP_INSTANCE_NAME-neo4j-core-$N.$APP_INSTANCE_NAME-neo4j.$NAMESPACE.svc.cluster.local`
-- Read Replica Host: `$APP_INSTANCE_NAME-neo4j-replica-$N.neo4j-readreplica.$NAMESPACE.svc.cluster.local`
+- Read Replica Host: `$APP_INSTANCE_NAME-neo4j-replica-$N.neo4j-replica.$NAMESPACE.svc.cluster.local`
 
 ### Exposed Services
 
@@ -147,7 +147,7 @@ Becuase you're connecting to the leader, both reads and writes are possible.  Th
 Once connected via a cypher shell, you may use any of the existing procedures for user and role management provided as part of neo4j.
 Advanced/Custom Configuration of Neo4j
 
-The deploy for GKE is based on Neo4j’s public docker containers.  This means that [Neo4j documentation for Docker](https://neo4j.com/docs/operations-manual/current/installation/docker/?ref=googlemarketplace) applies to the configuration of these pods.   In general, to specify an advanced configuration, users should edit the core-statefulset template, and the readreplias-statefulset template to specify environment variables passed to the Docker containers following the guidance of the Docker documentation listed above.
+The deploy for GKE is based on Neo4j’s public docker containers.  This means that [Neo4j documentation for Docker](https://neo4j.com/docs/operations-manual/current/installation/docker/?ref=googlemarketplace) applies to the configuration of these pods.   In general, to specify an advanced configuration, users should edit the core-statefulset template, and the readreplicas-statefulset template to specify environment variables passed to the Docker containers following the guidance of the Docker documentation listed above.
 
 For example, to enable query logging in Neo4j, a user would need to set dbms.logs.query.enabled=true inside of the container.   To do that, a user would add the following environment variable `NEO4J_dbms_logs_query_enabled=true` to the relevant templates; these environment variables would be passed through to the docker container, which would configure neo4j appropriately.
 

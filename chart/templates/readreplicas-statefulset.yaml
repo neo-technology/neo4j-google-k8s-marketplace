@@ -172,14 +172,18 @@ spec:
             echo "Starting Neo4j READ_REPLICA on $HOST"
             exec /docker-entrypoint.sh "neo4j"
         ports:
-        - containerPort: 6000
-          name: tx
-        - containerPort: 7474
-          name: browserhttp
-        - containerPort: 7473
-          name: browserhttps
-        - containerPort: 7687
-          name: bolt
+          - containerPort: 5000
+            name: discovery
+          - containerPort: 7000
+            name: raft
+          - containerPort: 6000
+            name: tx
+          - containerPort: 7474
+            name: browserhttp
+          - containerPort: 7473
+            name: browserhttps
+          - containerPort: 7687
+            name: bolt
         # securityContext:
         #   privileged: true
         volumeMounts:
