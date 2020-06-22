@@ -141,6 +141,7 @@ spec:
             export NEO4J_dbms_default__advertised__address=$HOST
             export NEO4J_dbms_connector_http_advertised__address=:{{ .Values.ports.http }}
             export NEO4J_dbms_connector_https_enabled=true
+            export NEO4J_dbms_ssl_policy_https_client__auth=NONE
             export NEO4J_dbms_connector_https_advertised__address=:{{ .Values.ports.https }}
             export NEO4J_dbms_ssl_policy_https_enabled=true
             export NEO4J_dbms_ssl_policy_https_base__directory=/var/lib/neo4j/certificates/https
