@@ -1,29 +1,50 @@
+{{- if not .Values.core.standalone }}
+# This service is intended for clients running in kubernetes to connect to the
+# cluster replica set.  This distinguishes it from discovery-lb which is about 
+# cluster formation and internal communication.
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ template "neo4j.fullname" . }}-readreplica
+  name: {{ template "neo4j.replica.fullname" . }}
   labels:
-    release: {{ .Values.name | quote }}
-    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
-    app: {{ template "neo4j.name" . }}
-    component: readreplica
+    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+    app.kubernetes.io/instance: {{ .Release.Name | quote }}
+    helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    app.kubernetes.io/name: {{ template "neo4j.replica.fullname" . }}
+    app.kubernetes.io/component: replica
+  {{- with .Values.readReplica.service.labels }}
+  {{ toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.readReplica.service.annotations }}
+annotations:
+  {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
-  clusterIP: None
-  publishNotReadyAddresses: true  
-  ports:
-    - name: http
-      protocol: TCP
-      port: 7474
-      targetPort: 7474
-    - name: https
-      protocol: TCP
-      port: 7473
-      targetPort: 7473
-    - name: bolt
-      protocol: TCP
-      port: 7687
-      targetPort: 7687
-  selector:
-    app: {{ template "neo4j.name" . }}
-    release: {{ .Values.name | quote }}
-    component: readreplica
+  {{- if (or (eq .Values.readReplica.service.type "ClusterIP") (empty .Values.readReplica.service.type)) }}
+type: ClusterIP
+clusterIP: None
+  {{- else if eq .Values.readReplica.service.type "LoadBalancer" }}
+type: LoadBalancer
+  {{- with .Values.readReplica.service.loadBalancerSourceRanges }}
+loadBalancerSourceRanges:
+  {{ toYaml . | nindent 4 }}
+  {{- end -}}
+  {{- else }}
+type: {{ .Values.readReplica.service.type }}
+  {{- end }}
+publishNotReadyAddresses: true
+ports:
+  - name: http
+    port: 7474
+    targetPort: 7474
+  - name: bolt
+    port: 7687
+    targetPort: 7687
+  - name: https
+    port: 7473
+    targetPort: 7473
+selector:
+  app.kubernetes.io/name: {{ template "neo4j.name" . }}
+  app.kubernetes.io/instance: {{ .Release.Name | quote }}
+  app.kubernetes.io/component: replica
+  {{- end }}

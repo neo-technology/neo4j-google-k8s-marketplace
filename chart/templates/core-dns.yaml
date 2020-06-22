@@ -1,29 +1,48 @@
+# This service is intended for clients running in kubernetes to connect to the
+# cluster.  This distinguishes it from discovery-lb which is about cluster formation
+# and internal communication.
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ template "neo4j.fullname" . }}
   labels:
-    release: {{ .Values.name | quote }}
-    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
-    app: {{ template "neo4j.name" . }}
-    component: core
+    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+    app.kubernetes.io/instance: {{ .Release.Name | quote }}
+    helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    app.kubernetes.io/name: {{ template "neo4j.name" . }}
+    app.kubernetes.io/component: core
+  {{- with .Values.core.service.labels }}
+  {{ toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.core.service.annotations }}
+annotations:
+  {{- toYaml . | nindent 4 }}
+    {{- end }}
 spec:
-  clusterIP: None
-  publishNotReadyAddresses: true
-  ports:
-    - name: http
-      protocol: TCP
-      port: 7474
-      targetPort: 7474
-    - name: https
-      protocol: TCP
-      port: 7473
-      targetPort: 7473
-    - name: bolt
-      protocol: TCP
-      port: 7687
-      targetPort: 7687
-  selector:
-    app: {{ template "neo4j.name" . }}
-    release: {{ .Values.name | quote }}
-    component: core
+  {{- if (or (eq .Values.core.service.type "ClusterIP") (empty .Values.core.service.type)) }}
+type: ClusterIP
+clusterIP: None
+  {{- else if eq .Values.core.service.type "LoadBalancer" }}
+type: LoadBalancer
+  {{- with .Values.core.service.loadBalancerSourceRanges }}
+loadBalancerSourceRanges:
+  {{ toYaml . | nindent 4 }}
+    {{- end -}}
+    {{- else }}
+type: {{ .Values.core.service.type }}
+  {{- end }}
+publishNotReadyAddresses: true
+ports:
+  - name: http
+    port: 7474
+    targetPort: 7474
+  - name: bolt
+    port: 7687
+    targetPort: 7687
+  - name: https
+    port: 7473
+    targetPort: 7473
+selector:
+  app.kubernetes.io/name: {{ template "neo4j.name" . }}
+  app.kubernetes.io/instance: {{ .Release.Name | quote }}
+  app.kubernetes.io/component: core

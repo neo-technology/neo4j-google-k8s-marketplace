@@ -1,247 +1,161 @@
-apiVersion: "apps/v1beta2"
+apiVersion: "apps/v1"
 kind: StatefulSet
 metadata:
   name: "{{ template "neo4j.core.fullname" . }}"
 spec:
   podManagementPolicy: Parallel
   serviceName: {{ template "neo4j.fullname" . }}
-  replicas: {{ .Values.coreServers }}
+  {{- if .Values.core.standalone }}
+  replicas: 1
+  {{- else }}
+  replicas: {{ .Values.core.numberOfServers }}
+  {{- end }}
   selector:
     matchLabels:
-      release: {{ .Values.name | quote }}
-      app: {{ template "neo4j.name" . }}
-      component: core
+      app.kubernetes.io/instance: {{ .Release.Name | quote }}
+      app.kubernetes.io/name: {{ template "neo4j.name" . }}
+      app.kubernetes.io/component: core
   template:
     metadata:
       labels:
-        release: {{ .Values.name | quote }}
-        chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
-        app: {{ template "neo4j.name" . }}
-        component: core
+        app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+        app.kubernetes.io/instance: {{ .Release.Name | quote }}
+        helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+        app.kubernetes.io/name: {{ template "neo4j.name" . }}
+        app.kubernetes.io/component: core
     spec:
+      serviceAccountName: "{{ template "neo4j.fullname" . }}-sa"
       containers:
-      - name: {{ template "neo4j.fullname" . }}
-        image: "{{ .Values.image }}"
-        imagePullPolicy: "{{ .Values.imagePullPolicy }}"
-        env:
-          - name: NEO4J_ACCEPT_LICENSE_AGREEMENT
-            value: "{{ .Values.acceptLicenseAgreement }}"
-          - name: NUMBER_OF_CORES
-            value: "{{ .Values.coreServers }}"
-          - name: AUTH_ENABLED
-            value: "{{ .Values.authEnabled }}"
-{{- if lt .Values.coreServers 3.0 }}
-          - name: NEO4J_dbms_mode
-            value: SINGLE
-{{ else }}
-          - name: NEO4J_dbms_mode
-            value: CORE
-          - name: NEO4J_causal__clustering_discovery__type
-            value: LIST
-          - name: NEO4J_causal__clustering_minimum__core__cluster__size__at__formation
-            value: "3"
-          - name: NEO4J_causal__clustering_minimum__core__cluster__size__at__runtime
-            value: "3"
-          - name: NEO4J_causal__clustering_initial__discovery__members
-            value: "{{ template "neo4j.fullname" . }}-core-0.{{ template "neo4j.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:5000,{{ template "neo4j.fullname" . }}-core-1.{{ template "neo4j.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:5000,{{ template "neo4j.fullname" . }}-core-2.{{ template "neo4j.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:5000"
-{{- end }}
-          {{- if .Values.authEnabled }}
-          - name: NEO4J_SECRETS_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: {{ template "neo4j.secrets.fullname" . }}
-                key: neo4j-password
-          {{- end }}
-{{- if .Values.coreExtraVars }}
-{{ toYaml .Values.coreExtraVars | indent 10 }}
-{{- end }}
-        command:
-          - "/bin/bash"
-          - "-c"
-          - |
-            export HOST=$(hostname -f)
-            export NEO4J_HOME=/var/lib/neo4j
-            running_as_root () {
-                test "$(id -u)" = "0"
-            }
+        - name: {{ template "neo4j.fullname" . }}
+          image: "{{ .Values.image }}:{{ .Values.imageTag }}"
+          imagePullPolicy: "{{ .Values.imagePullPolicy }}"
+          # Most pod config is factored into a different configMap, which is user overrideable.
+          envFrom:
+            - configMapRef:
+                name: {{ template "neo4j.commonConfig.fullname" . }}
+            - configMapRef:
+                {{- if .Values.core.configMap }}
+                name: "{{ .Values.core.configMap }}"
+                {{- else }}
+                name: {{ template "neo4j.coreConfig.fullname" . }}
+                {{- end }}
+          env:
+            {{- if .Values.authEnabled }}
+            - name: NEO4J_SECRETS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "neo4j.secrets.fullname" . }}
+                  key: neo4j-password
+            {{- end }}
+          command:
+            - "/bin/bash"
+            - "-c"
+            - |
+              export core_idx=$(hostname | sed 's|.*-||')
 
-            create_dir_if_necessary () {
-                for directory in "$@"; do
-                    if [ ! -d "${directory}" ]; then
-                        mkdir -p "${directory}"
-                        chown "${userid}":"${groupid}" "${directory}"
-                        chown "${userid}":"${groupid}" "${certificates_dir}"
-                    fi
-                done
-            }
+              # Processes key configuration elements and exports env vars we need.
+              . /helm-init/init.sh
 
-            create_dir_if_necessary
+              # We advertise the discovery-lb addresses (see discovery-lb.yaml) because
+              # it is for internal cluster comms and is limited to private ports.
+              export DISCOVERY_HOST="discovery-{{ template "neo4j.fullname" . }}-${core_idx}.{{ .Release.Namespace }}.svc.cluster.local"
+              export NEO4J_causal__clustering_discovery__advertised__address="$DISCOVERY_HOST:5000"
+              export NEO4J_causal__clustering_transaction__advertised__address="$DISCOVERY_HOST:6000"
+              export NEO4J_causal__clustering_raft__advertised__address="$DISCOVERY_HOST:7000"
 
-            generate_self_signed_certificates () {
-                local ip_address="0.0.0.0"
-                local dns_address="neo4j_k8s"
-                local certificates_dir="${NEO4J_HOME}/certificates"
-                if [ -d /ssl ]; then
-                    certificates_dir="/ssl"
-                fi
-
-                create_dir_if_necessary "${certificates_dir}/bolt/trusted" \
-                    "${certificates_dir}/bolt/revoked" \
-                    "${certificates_dir}/https/trusted" \
-                    "${certificates_dir}/https/revoked" \
-                    "${certificates_dir}/cluster/trusted" \
-                    "${certificates_dir}/cluster/revoked"
-                local openssl_config="
-            [ req ]
-            prompt = no
-            distinguished_name = req_distinguished_name
-            x509_extensions = san_self_signed
-            [ req_distinguished_name ]
-            CN=neo4j_k8s
-            [ san_self_signed ]
-            subjectAltName = IP:0.0.0.0,DNS:neo4j_k8s
-            subjectKeyIdentifier = hash
-            authorityKeyIdentifier = keyid:always,issuer
-            basicConstraints = CA:false
-            keyUsage = nonRepudiation, digitalSignature, keyEncipherment, dataEncipherment, keyCertSign, cRLSign
-            extendedKeyUsage = serverAuth, clientAuth, timeStamping
-            "
-
-                local private_key="${certificates_dir}/bolt/private.key"
-                local public_cert="${certificates_dir}/bolt/public.crt"
-
-                openssl req \
-                  -newkey rsa:2048 -nodes \
-                  -keyout "${private_key}" \
-                  -x509 -sha256 -days 800 \
-                  -config <(echo "${openssl_config}") \
-                  -out "${public_cert}"
-
-            chown "${userid}":"${groupid}" "${private_key}"
-                if running_as_root; then
-                    chmod 444 "${private_key}"
-                else
-                    chmod 440 "${private_key}"
-                fi
-                chown "${userid}":"${groupid}" "${public_cert}"
-                chmod 444 "${public_cert}"
-
-                cp "${private_key}" "${certificates_dir}/https/"
-                cp "${public_cert}" "${certificates_dir}/https/"
-                cp "${private_key}" "${certificates_dir}/cluster/"
-                cp "${public_cert}" "${certificates_dir}/cluster/"
-                cp "${public_cert}" "${certificates_dir}/cluster/trusted/"
-            }
-
-            if [ ! -f "$NEO4J_HOME/certificates/https/private.key" ]; then
-                echo "Certificates does not exist, generating certificates..."
-                generate_self_signed_certificates
-            fi
-
-            export NEO4J_dbms_default__advertised__address=$HOST
-            export NEO4J_dbms_connector_http_advertised__address=:{{ .Values.ports.http }}
-            export NEO4J_dbms_connector_https_enabled=true
-            export NEO4J_dbms_connector_https_advertised__address=:{{ .Values.ports.https }}
-            export NEO4J_dbms_ssl_policy_https_enabled=true
-            export NEO4J_dbms_ssl_policy_https_base__directory=/var/lib/neo4j/certificates/https
-            export NEO4J_dbms_connector_bolt_advertised__address=:{{ .Values.ports.bolt }}
-            export NEO4J_dbms_ssl_policy_bolt_enabled=true
-            export NEO4J_dbms_ssl_policy_bolt_client__auth=NONE
-            export NEO4J_dbms_ssl_policy_bolt_base__directory=/var/lib/neo4j/certificates/bolt
-            export NEO4J_dbms_backup_enabled=true
-            export NEO4J_dbms_backup_listen__address=$HOST:{{ .Values.ports.backup }}
-            export NEO4J_dbms_jvm_additional="-XX:+ExitOnOutOfMemoryError -Dunsupported.dbms.udc.source=google-gke-core"
-
-            export NEO4J_dbms_security_procedures_unrestricted="apoc.*"
-            export NEO4J_dbms_connector_bolt_tls__level=OPTIONAL
-            export NEO4J_apoc_import_file_enabled=true
-
-            # These settings are *not* overrideable, because they must match the addresses the
-            # core members see to avoid akka rejections.
-            export NEO4J_causal__clustering_discovery__advertised__address=$HOST:5000
-            export NEO4J_causal__clustering_transaction__advertised__address=$HOST:6000
-            export NEO4J_causal__clustering_raft__advertised__address=$HOST:7000
-
-            if [ "${AUTH_ENABLED:-}" == "true" ]; then
-              export NEO4J_AUTH="neo4j/${NEO4J_SECRETS_PASSWORD}"
-            else
-              export NEO4J_AUTH="none"
-            fi
-
-              echo "Starting Neo4j CORE on $HOST"
+              echo "Starting Neo4j CORE $core_idx on $HOST"
               exec /docker-entrypoint.sh "neo4j"
-        ports:
-        - containerPort: 5000
-          name: discovery
-        - containerPort: 7000
-          name: raft
-        - containerPort: 6000
-          name: tx
-        - containerPort: 7474
-          name: browserhttp
-        - containerPort: 7473
-          name: browserhttps
-        - containerPort: 7687
-          name: bolt
-        # securityContext:
-        #   privileged: true
-        volumeMounts:
-        - name: datadir
-          mountPath: "{{ .Values.volumeMountPath }}"
-          {{- if .Values.volumeSubPath }}
-          subPath: {{ .Values.volumeSubPath }}
+          ports:
+            - containerPort: 5000
+              name: discovery
+            - containerPort: 7000
+              name: raft
+            - containerPort: 6000
+              name: tx
+            - containerPort: 7474
+              name: browser
+            - containerPort: 7687
+              name: bolt
+          {{- if .Values.metrics.prometheus.enabled }}
+          - containerPort: 2004
+            name: prometheus
           {{- end }}
-        # Users may uncomment this and adjust that mount point to
-        # attach custom plugins.  For now, plugins are injected into the
-        # solution container.
-        #- name: plugins
-        #  mountPath: /plugins
-        readinessProbe:
-          tcpSocket:
-            port: {{ .Values.ports.bolt }}
-          initialDelaySeconds: 30
-          periodSeconds: 3
-        livenessProbe:
-          initialDelaySeconds: 60
-          tcpSocket:
-            port: {{ .Values.ports.bolt }}
-        resources:
-          requests:
-            cpu: "{{ .Values.cpuRequest }}"
-            memory: "{{ .Values.memoryRequest }}"
-          limits:
-            cpu: "{{ .Values.cpuLimit }}"
-            memory: "{{ .Values.memoryLimit }}"
-{{- if .Values.coreSidecarContainers }}
-{{ toYaml .Values.coreSidecarContainers | indent 6 }}
-{{- end }}
-{{- if .Values.imagePullSecret }}
-      imagePullSecrets:
-      - name: {{ .Values.imagePullSecret }}
-{{- end -}}
-{{- if .Values.coreInitContainers }}
-      initContainers:
-{{ toYaml .Values.coreInitContainers | indent 6 }}
-{{- end }}
-      volumes:
-        - name: plugins
-          emptyDir: {}
-{{- if .Values.maintenanceServiceKeySecret }}
-        - name: "{{ .Values.maintenanceServiceKeySecret }}"
-          secret:
-            secretName: "{{ .Values.maintenanceServiceKeySecret }}"
-{{- end }}
-  volumeClaimTemplates:
-    - metadata:
-        name: datadir
-        annotations:
-        {{- if .Values.volumeAnnotations }}
-{{ toYaml .Values.volumeAnnotations | indent 12 }}
-        {{- end }}
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        storageClassName: "{{ .Values.volumeStorageClass }}"
-        resources:
-          requests:
-            storage: "{{ .Values.volumeSize }}"
+          {{- if .Values.metrics.graphite.enabled }}
+          - containerPort: 2003
+            name: graphite
+          {{- end }}
+          {{- if .Values.metrics.jmx.enabled }}
+          - containerPort: 3637
+            name: jmx
+          {{- end }}
+          volumeMounts:
+            - name: init-script
+              mountPath: /helm-init
+            - name: datadir
+              mountPath: "{{ .Values.core.persistentVolume.mountPath }}"
+              {{- if .Values.core.persistentVolume.subPath }}
+              subPath: {{ .Values.core.persistentVolume.subPath }}
+              {{- end }}
+            - name: plugins
+              mountPath: /plugins
+          readinessProbe:
+  {{ toYaml .Values.readinessProbe | indent 10 }}
+livenessProbe:
+  {{ toYaml .Values.livenessProbe | indent 10 }}
+resources:
+  {{ toYaml .Values.resources | indent 10 }}
+  {{- if .Values.core.sidecarContainers }}
+  {{ toYaml .Values.core.sidecarContainers | indent 6 }}
+  {{- end }}
+  {{- if .Values.imagePullSecret }}
+imagePullSecrets:
+  - name: {{ .Values.imagePullSecret }}
+  {{- end -}}
+  {{- if .Values.core.initContainers }}
+initContainers:
+  {{ toYaml .Values.core.initContainers | indent 6 }}
+  {{- end }}
+volumes:
+  - name: init-script
+    configMap:
+      name: "{{ .Release.Name }}-init-script"
+  {{- if not .Values.core.persistentVolume.enabled }}
+  - name: datadir
+    emptyDir: {}
+  {{- end }}
+  - name: plugins
+    emptyDir: {}
+  {{- with .Values.nodeSelector }}
+nodeSelector:
+  {{ toYaml . | indent 8 }}
+  {{- end }}
+  {{- with .Values.affinity }}
+affinity:
+  {{ toYaml . | indent 8 }}
+  {{- end }}
+  {{- with .Values.tolerations }}
+tolerations:
+  {{ toYaml . | indent 8 }}
+  {{- end }}
+  {{- if .Values.core.persistentVolume.enabled }}
+volumeClaimTemplates:
+  - metadata:
+      name: datadir
+      annotations:
+      {{- if .Values.core.persistentVolume.annotations }}
+  {{ toYaml .Values.core.persistentVolume.annotations | indent 12 }}
+  {{- end }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  {{- if .Values.core.persistentVolume.storageClass }}
+  {{- if (eq "-" .Values.core.persistentVolume.storageClass) }}
+storageClassName: ""
+  {{- else }}
+storageClassName: "{{ .Values.core.persistentVolume.storageClass }}"
+  {{- end }}
+  {{- end }}
+resources:
+  requests:
+    storage: "{{ .Values.core.persistentVolume.size }}"
+  {{- end }}

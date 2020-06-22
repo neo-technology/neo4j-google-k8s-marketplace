@@ -5,19 +5,27 @@
 
 name: "neo4j"
 
-# Specs for the solution container.  See 'causal-cluster' directory.
-image: "gcr.io/neo4j-k8s-marketplace-public/causal-cluster:4.0"
-# Version for the solution container
-imageTag: "4.0"
-# Neo4j version the solution container is based on.
-neo4jVersion: "4.0.5"
-ubbAgentImage: "gcr.io/neo4j-k8s-marketplace-public/causal-cluster/ubbagent:4.0"
-imagePullPolicy: "Always"
+# Specs for the Neo4j docker image
+image: "neo4j"
+imageTag: "4.0.5-enterprise"
+imagePullPolicy: "IfNotPresent"
 # imagePullSecret: registry-secret
-acceptLicenseAgreement: "yes"
+acceptLicenseAgreement: "no"
 podDisruptionBudget: {}
-  # minAvailable: 2
-  # maxUnavailable: 1
+# minAvailable: 2
+# maxUnavailable: 1
+
+## Node labels for pod assignment
+## ref: https://kubernetes.io/docs/user-guide/node-selection/
+nodeSelector: {}
+
+## Tolerations for pod assignment
+## ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+tolerations: []
+
+## Affinity for pod assignment
+## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
+affinity: {}
 
 # Use password authentication
 authEnabled: true
@@ -26,102 +34,204 @@ authEnabled: true
 ## Defaults to a random 10-character alphanumeric string if not set and authEnabled is true
 # neo4jPassword:
 
-# Uncomment this and set it if you want to pair an existing secret service key
-# maintenanceServiceKeySecret: "restore-service-key"
+# Specify cluster domain (used eg. as suffix in the eventual internal hostnames)
+clusterDomain: "cluster.local"
 
-######################
-#### CORE SERVERS  ###
-######################
-coreServers: 3
-coreSidecarContainers: []
+# Specs for the images used for running tests against the Helm package
+# https://github.com/mneedham/k8s-kubectl this is a general kubectl docker image
+testImage: "gcr.io/neo4j-helm/tester"
+testImageTag: "4.0.0"
 
-coreInitContainers: []
-#####################################################################
-# ---> EXAMPLE OF HOW TO SETUP initContainers for restore.
-#####################################################################
-#  - name: restore-from-file
-#    image: gcr.io/neo4j-k8s-marketplace-public/causal-cluster/restore:4.0
-#    imagePullPolicy: Always
-#    volumeMounts:
-#    - name: datadir
-#      mountPath: /data
-#    - name: restore-service-key
-#      mountPath: /auth
-#    env:
-#    - name: REMOTE_BACKUPSET
-#      value: gs://neo4j-database-backups/meetup-dataset-dirformat
-#    - name: BACKUP_SET_DIR
-#      value: meetup-dataset-backup
-#    - name: GOOGLE_APPLICATION_CREDENTIALS
-#      value: /auth/credentials.json
-#    # CAUTION: Read documentation before proceeding with this flag.
-#    - name: FORCE_OVERWRITE
-#      value: "true"
-#####################################################################
-# EXAMPLE OF HOW TO SETUP initContainers for custom plugin install.
-# do not use this particular one, because APOC is already installed, it is
-# just provided as an example.
-#####################################################################
-#  - name: init-plugins
-#    image: "gcr.io/neo4j-k8s-marketplace-public/causal-cluster/appropriate/curl"
-#    imagePullPolicy: "IfNotPresent"
-#    volumeMounts:
-#    - name: plugins
-#      mountPath: /plugins
-#    command:
-#      - "/bin/sh"
-#      - "-c"
-#      - |
-#        curl -L https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.0.0.12/apoc-4.0.0.12-all.jar -O
-#        cp apoc-4.0.0.12-all.jar /plugins/
+# Whether or not to use APOC: https://neo4j.com/labs/apoc/
+# Comment out if you do not want to use it.
+useAPOC: "true"
 
-volumeMountPath: /data
-volumeAnnotations: {}
+# The default name of the Neo4j database to use.
+# See https://neo4j.com/docs/operations-manual/current/manage-databases/introduction/#manage-databases-default
+defaultDatabase: "neo4j"
 
-## Subdirectory of core server data Persistent Volume to mount
-## Useful if the volume's root directory is not empty
-##
-# coreVolumeSubPath: ""
-volumeSize: 10Gi
+# Cores
+core:
+  # configMap: "my-custom-configmap"
+  standalone: false
+  numberOfServers: 3
+  persistentVolume:
+    ## whether or not persistence is enabled
+    ##
+    enabled: true
 
-## core server data Persistent Volume Storage Class
-## If defined, storageClassName: <storageClass>
-## If set to "-", storageClassName: "", which disables dynamic provisioning
-## If undefined (the default) or set to null, no storageClassName spec is
-##   set, choosing the default provisioner.  (gp2 on AWS, standard on
-##   GKE, AWS & OpenStack)
-volumeStorageClass: SSD
+    ## core server data Persistent Volume mount root path
+    ##
+    mountPath: /data
 
-# Pass extra vars if needed to neo4j docker containers
-# coreExtraVars:
-# - name: EXTRA_VAR_1
-#   value: extra-var-value-1
-# - name: EXTRA_VAR_2
-#   value: extra-var-value-2
+    ## core server data Persistent Volume size
+    ##
+    size: 10Gi
 
-######################
-#### READ REPLICAS ###
-######################
-readReplicaServers: 0
+    ## core server data Persistent Volume Storage Class
+    ## If defined, storageClassName: <storageClass>
+    ## If set to "-", storageClassName: "", which disables dynamic provisioning
+    ## If undefined (the default) or set to null, no storageClassName spec is
+    ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+    ##   GKE, AWS & OpenStack)
+    ## storageClass: "-"
 
-# readReplicaExtraVars:
-# - name: EXTRA_VAR_1
-#   value: extra-var-value-1
-# - name: EXTRA_VAR_2
-#   value: extra-var-value-2
+    ## Subdirectory of core server data Persistent Volume to mount
+    ## Useful if the volume's root directory is not empty
+    ##
+    ## subPath: ""
 
-# See above for examples on how to restore recent backups to read replicas.
-# You need to configure this separately from core member init containers, to permit
-# different configuration to apply to each node set.
-readReplicaInitContainers: []
+  sidecarContainers: []
+  ## Additional containers to be added to the Neo4j core pod.
+  #  - name: my-sidecar
+  #    image: nginx:latest
 
-cpuRequest: 200m
-cpuLimit: 8
-memoryRequest: 512M
-memoryLimit: 512Gi
+  initContainers: []
+  ## init containers to run before the Neo4j core pod e.g. to install plugins
+  ## They can also be used to restore from last available backup, to ensure that newly joining
+  ## core members have less TX history to catch up on before joining the cluster.
+  ## Note that this is specifically *not* needed for APOC, which is included by default.
+  # - name: init-plugins
+  #   image: "appropriate/curl:latest"
+  #   imagePullPolicy: "IfNotPresent"
+  #   volumeMounts:
+  #   - name: plugins
+  #     mountPath: /plugins
+  #   command:
+  #     - "/bin/sh"
+  #     - "-c"
+  #     - |
+  #       curl -L https://somesite.com/path/to/plugin.jar -O
+  #       cp plugin.jar /plugins/
 
-ports:
-  http: 7474
-  https: 7473
-  bolt: 7687
-  backup: 6362
+  ## This service is intended for clients running in kubernetes to connect to
+  ## the cluster.
+  ## Default: ClusterIP (headless)
+  service:
+    type: ClusterIP
+    annotations: {}
+    labels: {}
+    loadBalancerSourceRanges: []
+
+  ## This creates a discovery Service for each member in the core set, and ties
+  ## to the use of the Neo4j discovery type "K8S" with the configured selectors.
+  ## Default: ClusterIP (headless)
+  discoveryService:
+    type: ClusterIP
+    annotations: {}
+    labels: {}
+    loadBalancerSourceRanges: []
+
+# Read Replicas
+readReplica:
+  # configMap: "my-custom-configmap"
+
+  resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 512Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 512Mi
+
+  autoscaling:
+    enabled: false
+    targetAverageUtilization: 70
+    minReplicas: 1
+    maxReplicas: 3
+
+  numberOfServers: 0
+
+  sidecarContainers: []
+  ## Additional containers to be added to the Neo4j replica pod.
+  #  - name: my-sidecar
+  #    image: nginx:latest
+
+  initContainers: []
+  ## init containers to run before the Neo4j replica pod e.g. to install custom plugins
+  ## They can also be used to restore from last available backup, to ensure that newly joining
+  ## core members have less TX history to catch up on before joining the cluster.
+  ## Note that this is specifically *not* needed for APOC, which is included by default.
+  # - name: init-plugins
+  #   image: "appropriate/curl:latest"
+  #   imagePullPolicy: "IfNotPresent"
+  #   volumeMounts:
+  #   - name: plugins
+  #     mountPath: /plugins
+  #   command:
+  #     - "/bin/sh"
+  #     - "-c"
+  #     - |
+  #       curl -L https://somesite.com/path/to/plugin.jar -O
+  #       cp plugin.jar /plugins/
+
+  ## This service is intended for clients running in kubernetes to connect to
+  ## the cluster replica set.
+  ## Default: ClusterIP (headless)
+  service:
+    type: ClusterIP
+    annotations: {}
+    labels: {}
+    loadBalancerSourceRanges: []
+
+resources: {}
+  # limits:
+  #   cpu: 1000m
+  #   memory: 1G
+  # requests:
+#   cpu: 1000m
+#   memory: 1G
+
+# Readiness probes will send a kill signal to the container if
+# it fails enough times.  It's therefore very important
+# that initialDelaySeconds give the cluster time to form, because
+# if readiness probes start immediately after container start,
+# they may end up not forming quickly enough and getting killed.
+# DEPENDENCY:  If you're running in standalone mode, the single machine
+# starts much faster.  You could set initialDelaySeconds to something like
+# 30 and it would be OK for a stand-alone machine, but not for a cluster.
+readinessProbe:
+  initialDelaySeconds: 120
+  failureThreshold: 3
+  timeoutSeconds: 2
+  periodSeconds: 10
+  tcpSocket:
+    port: 7687
+
+livenessProbe:
+  initialDelaySeconds: 300
+  periodSeconds: 10
+  failureThreshold: 3
+  timeoutSeconds: 2
+  tcpSocket:
+    port: 7687
+
+## (OPTIONAL) Expose Neo4j metrics
+# The structure of this object matches the Neo4j config syntax
+# Found in chapter 13 of the operations manual:
+# https://neo4j.com/docs/operations-manual/current/monitoring/metrics/expose/
+metrics:
+  graphite:
+    enabled: false
+    server: localhost:2003
+    interval: 3s
+    # This will be set to the app name later.
+    # metrics.prefix=Neo4j_1
+  prometheus:
+    ## Publish metrics for polling as Prometheus endpoint
+    enabled: false
+    endpoint: localhost:2004
+  csv:
+    enabled: true
+    interval: 3s
+  jmx:
+    enabled: true
+
+dbms:
+  memory:
+    use_memrec: false
+    heap:
+      initial_size: ""
+      max_size: ""
+    pagecache:
+      size: ""
