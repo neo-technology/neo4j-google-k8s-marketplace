@@ -64,10 +64,10 @@ spec:
 
       ```
       MY_NEO4J_CLUSTER_POD=$APP_INSTANCE_NAME-neo4j-core-0
-      kubectl port-forward $MY_NEO4J_CLUSTER_POD 7687:7687 7474:7474
+      kubectl port-forward $MY_NEO4J_CLUSTER_POD 7687:7687 7474:7474 7473:7473
       ```
 
-      Then open a browser to `localhost:7474`.  **Make sure to adjust the server connect information to connect to localhost and not the default internal DNS**.
+      Then open a browser to `localhost:7473`.  **Make sure to adjust the server connect information to connect to localhost and not the default internal DNS**.
 
       For more information, see the user guide.      
   selector:
