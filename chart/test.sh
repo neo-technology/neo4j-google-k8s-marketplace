@@ -12,7 +12,7 @@ check_role() {
   end="$((SECONDS+600))"
   while true; do
     echo "checking cluster role: ${name} for systemdb"
-    # In Neo4j 4.0 members now only have a cluster role with respect to a particular database.
+    # In Neo4j 4.1 members now only have a cluster role with respect to a particular database.
     kubectl exec ${name} -n ${NS} -- bin/cypher-shell -a ${name} -u neo4j -p ${NEO4J_SECRETS_PASSWORD} "call dbms.cluster.role('system')" 2>/dev/null
     response_code=$?
     [[ "0" = "$response_code" ]] && break
