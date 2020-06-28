@@ -4,7 +4,7 @@
 
 Neo4j on GKE allows users to deploy multi-node Neo4j Enterprise Causal Clusters to GKE instances, with configuration options for the most common scenarios.  It represents a very rapid way to get started running the world leading native graph database on top of Kubernetes.
 
-This guide is intended only as a supplement to the [Neo4j Operations Manual](https://neo4j.com/docs/operations-manual/4.0/?ref=googlemarketplace).   Neo4j on GKE is essentially a docker container based deploy of Neo4j Causal Cluster.  As such, all of the information in the Operations Manual applies to its operation, and this guide will focus only on kubernetes-specific concerns and GKE-specific concerns.
+This guide is intended only as a supplement to the [Neo4j Operations Manual](https://neo4j.com/docs/operations-manual/4.1/?ref=googlemarketplace).   Neo4j on GKE is essentially a docker container based deploy of Neo4j Causal Cluster.  As such, all of the information in the Operations Manual applies to its operation, and this guide will focus only on kubernetes-specific concerns and GKE-specific concerns.
 
 ## Licensing & Cost
 
@@ -98,7 +98,7 @@ To connect to your cluster, you can issue the following command; modify APP_INST
 APP_INSTANCE_NAME=my-graph
 # Set password as described above in NEO4J_PASSWORD
 kubectl run -it --rm cypher-shell \
-  --image=gcr.io/cloud-marketplace/neo4j-public/causal-cluster-k8s:4.0 \
+  --image=gcr.io/cloud-marketplace/neo4j-public/causal-cluster-k8s:4.1 \
   --restart=Never \
   --namespace=default \
   --command -- ./bin/cypher-shell -u neo4j \
@@ -166,7 +166,7 @@ relevant bucket.
 
 ### Image Updates
 
-This version of Neo4j on GKE tracks the 4.0 release series of Neo4j.  As such, periodic updates may be provided which will increase the patch level release that is underlying causal cluster, but at no time will any non-backwards compatible image updates be introduced.
+This version of Neo4j on GKE tracks the 4.1 release series of Neo4j.  As such, periodic updates may be provided which will increase the patch level release that is underlying causal cluster, but at no time will any non-backwards compatible image updates be introduced.
 
 ## Scaling
 

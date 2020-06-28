@@ -169,6 +169,8 @@ spec:
             else
               export NEO4J_AUTH="none"
             fi
+            # Once passed through to auth, unset this so Neo4j doesn't misinterpret it as config.
+            unset NEO4J_SECRETS_PASSWORD
 
             echo "Starting Neo4j READ_REPLICA on $HOST"
             exec /docker-entrypoint.sh "neo4j"
