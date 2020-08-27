@@ -3,7 +3,7 @@ RUN apt-get update
 RUN apt-get install -y bash curl wget gnupg apt-transport-https apt-utils lsb-release
 RUN wget -O - https://debian.neo4j.com/neotechnology.gpg.key | apt-key add -
 RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
-RUN echo 'deb http://debian.neo4j.com stable latest' | tee -a /etc/apt/sources.list.d/neo4j.list
+RUN echo 'deb https://debian.neo4j.com stable 4.0' | tee -a /etc/apt/sources.list.d/neo4j.list
 RUN echo "deb http://packages.cloud.google.com/apt cloud-sdk-$(lsb_release -c -s) main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
 RUN echo "deb http://httpredir.debian.org/debian stretch-backports main" | tee -a /etc/apt/sources.list.d/stretch-backports.list
 
