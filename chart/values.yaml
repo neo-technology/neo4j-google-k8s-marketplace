@@ -10,7 +10,7 @@ image: "gcr.io/neo4j-k8s-marketplace-public/causal-cluster:3.5"
 # Version for the solution container
 imageTag: "3.5"
 # Neo4j version the solution container is based on.
-neo4jVersion: "3.5.14"
+neo4jVersion: "3.5.22"
 ubbAgentImage: "gcr.io/neo4j-k8s-marketplace-public/causal-cluster/ubbagent:3.5"
 imagePullPolicy: "Always"
 # imagePullSecret: registry-secret
@@ -72,8 +72,8 @@ coreInitContainers: []
 #      - "/bin/sh"
 #      - "-c"
 #      - |
-#        curl -L https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.6/apoc-3.5.0.6-all.jar -O
-#        cp apoc-3.5.0.6-all.jar /plugins/
+#        curl -L https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.5.0.15/apoc-3.5.0.15-all.jar -O
+#        cp apoc-3.5.0.15-all.jar /plugins/
 
 volumeMountPath: /data
 volumeAnnotations: {}
