@@ -36,6 +36,9 @@ will result in a single neo4j instance ([dbms.mode=SINGLE](https://neo4j.com/doc
 * **memoryLimit**: Memory limit per pod
 * **volumeSize**:  Disk allocation to core nodes, for example “2Gi”
 
+Whatever you choose for `name`, we will use the *same value* for the `APP_INSTANCE_NAME`
+env var for the rest of these instructions.
+
 ### Hardware Allocation
 
 In order to ensure that Neo4j is deployable on basic/default GKE clusters, the default values for hardware requests have been made fairly low, and can be found in [schema.yaml](../schema.yaml).  The initial request is a fraction of a CPU per node, with 512MB of memory.  By default, the CPU upper limit is 8, and memory limit 512GB, which can be adjusted. 
@@ -57,7 +60,8 @@ After installing from GCP Marketplace, your cluster will start with a strong pas
 kubectl get secrets $APP_INSTANCE_NAME-neo4j-secrets -o yaml | grep neo4j-password: | sed 's/.*neo4j-password: *//' | base64 --decode
 ```
 
-This password applies for the base administrative user named “neo4j”.
+This password applies for the base administrative user named “neo4j”.  Set the `NEO4J_PASSWORD` 
+environment variable the value that is output here, for the rest of the steps.
 
 ### Hostnames
 
