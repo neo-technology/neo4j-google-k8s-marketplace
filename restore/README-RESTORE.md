@@ -50,7 +50,7 @@ set correctly given the way you created your secret.
 ```
 coreInitContainers: 
    - name: restore-from-file
-     image: gcr.io/neo4j-k8s-marketplace-public/causal-cluster/restore:4.1
+     image: gcr.io/neo4j-k8s-marketplace-public/causal-cluster/restore:4.2
      imagePullPolicy: Always
      volumeMounts:
      - name: datadir
