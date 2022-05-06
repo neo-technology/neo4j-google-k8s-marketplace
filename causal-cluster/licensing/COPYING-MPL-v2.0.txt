@@ -203,7 +203,7 @@ or limitations of liability) contained within the Source Code Form of
 the Covered Software, except that You may alter any license notices to
 the extent required to remedy known factual inaccuracies.
 
-3.5. Application of Additional Terms
+4.0. Application of Additional Terms
 
 You may choose to offer, and to charge a fee for, warranty, support,
 indemnity or liability obligations to one or more recipients of Covered

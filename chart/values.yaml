@@ -6,12 +6,12 @@
 name: "neo4j"
 
 # Specs for the solution container.  See 'causal-cluster' directory.
-image: "gcr.io/neo4j-k8s-marketplace-public/causal-cluster:3.4"
+image: "gcr.io/neo4j-k8s-marketplace-public/causal-cluster:4.4"
 # Version for the solution container
-imageTag: "3.4"
+imageTag: "4.4"
 # Neo4j version the solution container is based on.
-neo4jVersion: "3.4.11"
-ubbAgentImage: "gcr.io/neo4j-k8s-marketplace-public/causal-cluster/ubbagent:3.4"
+neo4jVersion: "4.4.6"
+ubbAgentImage: "gcr.io/neo4j-k8s-marketplace-public/causal-cluster/ubbagent:4.4"
 imagePullPolicy: "Always"
 # imagePullSecret: registry-secret
 acceptLicenseAgreement: "yes"
@@ -40,7 +40,7 @@ coreInitContainers: []
 # ---> EXAMPLE OF HOW TO SETUP initContainers for restore.
 #####################################################################
 #  - name: restore-from-file
-#    image: gcr.io/neo4j-k8s-marketplace-public/causal-cluster/restore:3.4
+#    image: gcr.io/neo4j-k8s-marketplace-public/causal-cluster/restore:4.4
 #    imagePullPolicy: Always
 #    volumeMounts:
 #    - name: datadir
@@ -72,8 +72,8 @@ coreInitContainers: []
 #      - "/bin/sh"
 #      - "-c"
 #      - |
-#        curl -L https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/3.4.0.1/apoc-3.4.0.1-all.jar -O
-#        cp apoc-3.4.0.1-all.jar /plugins/
+#        curl -L https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.4.0.4/apoc-4.4.0.4-all.jar -O
+#        cp apoc-4.4.0.4-all.jar /plugins/
 
 volumeMountPath: /data
 volumeAnnotations: {}

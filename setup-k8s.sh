@@ -4,16 +4,16 @@
 # testing and deploying this code in a sample GKE cluster.
 PROJECT=neo4j-k8s-marketplace-public
 CLUSTER=lab
-ZONE=us-central1-a
-NODES=3
+ZONE=us-east1-b
+NODES=4
 API=beta
-NEO4J_VERSION=3.4.11-enterprise
+NEO4J_VERSION=4.4.6-enterprise
 
 gcloud beta container clusters create $CLUSTER \
     --zone "$ZONE" \
     --project $PROJECT \
-    --machine-type "n1-standard-1" \
-    --num-nodes "4" \
+    --machine-type "n1-standard-4" \
+    --num-nodes $NODES \
     --max-nodes "10" \
     --enable-autoscaling
     

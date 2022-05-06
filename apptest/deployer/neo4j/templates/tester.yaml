@@ -43,7 +43,7 @@ data:
   run.sh: |-
     set -x
     host="{{ .Release.Name }}-neo4j.{{ .Release.Namespace }}.svc.cluster.local"
-    replica_host="{{ .Release.Name }}-neo4j-readreplica-svc.{{ .Release.Namespace }}.svc.cluster.local"
+    replica_host="{{ .Release.Name }}-neo4j-readreplica.{{ .Release.Namespace }}.svc.cluster.local"
     echo "HOST $host"
     # This endpoint proves availability of the overall service
     endpoint="http://$host:{{ .Values.ports.http }}"
@@ -110,17 +110,17 @@ data:
 
     function cypher {
       # Use routing driver by default, send query wherever.
-      DEFAULT_ENDPOINT="bolt+routing://$host:{{ .Values.ports.bolt}}"
+      DEFAULT_ENDPOINT="neo4j://$host:{{ .Values.ports.bolt}}"
 
       # If caller specified, use a specific endpoint to route a query to just one node.
       ENDPOINT=${2:-$DEFAULT_ENDPOINT}
 
-      echo "$1" | cypher-shell --encryption true -u neo4j -a "$ENDPOINT" -p "$NEO4J_SECRETS_PASSWORD"
+      echo "$1" | cypher-shell --encryption false -u neo4j -a "$ENDPOINT" -p "$NEO4J_SECRETS_PASSWORD"
     }
 
     function runtest {
       # Use routing driver by default, send query wherever.
-      DEFAULT_ENDPOINT="bolt+routing://$host:{{ .Values.ports.bolt}}"
+      DEFAULT_ENDPOINT="neo4j://$host:{{ .Values.ports.bolt}}"
 
       # If caller specified, use a specific endpoint to route a query to just one node.
       ENDPOINT=${3:-$DEFAULT_ENDPOINT}
@@ -194,8 +194,6 @@ data:
       test="Core host $id of $CORES -- $core_endpoint has APOC installed correctly"
       runtest "$test" "RETURN apoc.version();" "$core_endpoint"
 
-      test="Core host $id of $CORES -- $core_endpoint has Graph Algorithms installed correctly"
-      runtest "$test" "CALL algo.list();" "$core_endpoint"
     done
 
     # Replicas are up and configured.

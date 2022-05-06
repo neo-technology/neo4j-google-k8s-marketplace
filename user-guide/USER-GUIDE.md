@@ -4,7 +4,7 @@
 
 Neo4j on GKE allows users to deploy multi-node Neo4j Enterprise Causal Clusters to GKE instances, with configuration options for the most common scenarios.  It represents a very rapid way to get started running the world leading native graph database on top of Kubernetes.
 
-This guide is intended only as a supplement to the [Neo4j Operations Manual](https://neo4j.com/docs/operations-manual/3.4/?ref=googlemarketplace).   Neo4j on GKE is essentially a docker container based deploy of Neo4j Causal Cluster.  As such, all of the information in the Operations Manual applies to its operation, and this guide will focus only on kubernetes-specific concerns and GKE-specific concerns.
+This guide is intended only as a supplement to the [Neo4j Operations Manual](https://neo4j.com/docs/operations-manual/4.4/?ref=googlemarketplace).   Neo4j on GKE is essentially a docker container based deploy of Neo4j Causal Cluster.  As such, all of the information in the Operations Manual applies to its operation, and this guide will focus only on kubernetes-specific concerns and GKE-specific concerns.
 
 ## Licensing & Cost
 
@@ -64,7 +64,7 @@ This password applies for the base administrative user named “neo4j”.
 All neo4j cluster nodes inside of GKE will get private DNS names that you can use to access them.  Host names will be generated as follows.   `$NAMESPACE` refers to the kubernetes namespace used to deploy neo4j, and `$APP_INSTANCE_NAME` refers to the name it was deployed under.  The variable `$N` refers to the individual cluster node.  For clusters with 3 core nodes, $N could be 0, 1, or 2, and a total of three hostnames will be valid.
 
 - Core Host:  `$APP_INSTANCE_NAME-neo4j-core-$N.$APP_INSTANCE_NAME-neo4j.$NAMESPACE.svc.cluster.local`
-- Read Replica Host: `$APP_INSTANCE_NAME-neo4j-replica-$N.neo4j-readreplica.$NAMESPACE.svc.cluster.local`
+- Read Replica Host: `$APP_INSTANCE_NAME-neo4j-replica-$N.neo4j-replica.$NAMESPACE.svc.cluster.local`
 
 ### Exposed Services
 
@@ -98,7 +98,7 @@ To connect to your cluster, you can issue the following command; modify APP_INST
 APP_INSTANCE_NAME=my-graph
 # Set password as described above in NEO4J_PASSWORD
 kubectl run -it --rm cypher-shell \
-  --image=gcr.io/cloud-marketplace/neo4j-public/causal-cluster-k8s:3.4 \
+  --image=gcr.io/cloud-marketplace/neo4j-public/causal-cluster-k8s:4.4 \
   --restart=Never \
   --namespace=default \
   --command -- ./bin/cypher-shell -u neo4j \
@@ -147,7 +147,7 @@ Becuase you're connecting to the leader, both reads and writes are possible.  Th
 Once connected via a cypher shell, you may use any of the existing procedures for user and role management provided as part of neo4j.
 Advanced/Custom Configuration of Neo4j
 
-The deploy for GKE is based on Neo4j’s public docker containers.  This means that [Neo4j documentation for Docker](https://neo4j.com/docs/operations-manual/current/installation/docker/?ref=googlemarketplace) applies to the configuration of these pods.   In general, to specify an advanced configuration, users should edit the core-statefulset template, and the readreplias-statefulset template to specify environment variables passed to the Docker containers following the guidance of the Docker documentation listed above.
+The deploy for GKE is based on Neo4j’s public docker containers.  This means that [Neo4j documentation for Docker](https://neo4j.com/docs/operations-manual/current/installation/docker/?ref=googlemarketplace) applies to the configuration of these pods.   In general, to specify an advanced configuration, users should edit the core-statefulset template, and the readreplicas-statefulset template to specify environment variables passed to the Docker containers following the guidance of the Docker documentation listed above.
 
 For example, to enable query logging in Neo4j, a user would need to set dbms.logs.query.enabled=true inside of the container.   To do that, a user would add the following environment variable `NEO4J_dbms_logs_query_enabled=true` to the relevant templates; these environment variables would be passed through to the docker container, which would configure neo4j appropriately.
 
@@ -166,7 +166,7 @@ relevant bucket.
 
 ### Image Updates
 
-This version of Neo4j on GKE tracks the 3.4 release series of Neo4j.  As such, periodic updates may be provided which will increase the patch level release that is underlying causal cluster, but at no time will any non-backwards compatible image updates be introduced.
+This version of Neo4j on GKE tracks the 4.4 release series of Neo4j.  As such, periodic updates may be provided which will increase the patch level release that is underlying causal cluster, but at no time will any non-backwards compatible image updates be introduced.
 
 ## Scaling
 

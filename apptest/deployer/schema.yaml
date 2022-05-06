@@ -1,3 +1,9 @@
 properties:
   tester.image:
     type: string
+    default: $REGISTRY/tester:$TAG
+  # For the tests we've specified, we need to have at least one RR for those tests
+  # to run.
+  readReplicaServers:
+    type: integer
+    default: 1
