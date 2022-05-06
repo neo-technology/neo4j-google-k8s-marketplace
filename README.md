@@ -43,7 +43,7 @@ The solution is composed of two core containers:
 - The deployment container, which expands the helm chart and applies resources to a running k8s cluster See the `deployer` and `chart` directories.
 - The test container, which is layered on top of the deploy container and runs functional tests to ensure a working neo4j cluster.  See the `apptest` directory.
 - A set of solution containers deployed under the neo4j GCR. The primary solution container shares the name with the solution (causal cluster)
-and tracks the 4.2 release series, but is not versioned more specifically than that.  See the `causal-cluster` directory.
+and tracks the 4.4 release series, but is not versioned more specifically than that.  See the `causal-cluster` directory.
 
 ## Building All Containers and Pushing them to the Staging Repo
  
@@ -57,10 +57,10 @@ Adjust parameters as needed / necessary, and take note of the tags for versionin
 running the deployer container, and telling it to deploy a cluster of 3 cores, 1 RR of the "solution containers".
 
 ```
-# This assumes APP_INSTANCE_NAME=testdeploy and SOLUTION_VERSION=4.2
+# This assumes APP_INSTANCE_NAME=testdeploy and SOLUTION_VERSION=4.4
 $ mpdev install \
-      --deployer=gcr.io/neo4j-k8s-marketplace-public/causal-cluster/deployer:4.2 \
-      --parameters='{"name": "testdeploy", "namespace": "default", "image":"gcr.io/neo4j-k8s-marketplace-public/causal-cluster:4.2","coreServers":"3","readReplicaServers":"1"}'
+      --deployer=gcr.io/neo4j-k8s-marketplace-public/causal-cluster/deployer:4.4 \
+      --parameters='{"name": "testdeploy", "namespace": "default", "image":"gcr.io/neo4j-k8s-marketplace-public/causal-cluster:4.4","coreServers":"3","readReplicaServers":"1"}'
 ```
 
 ## Running the Deployer Container (Old Method Relying on Google Marketplace Utils)
@@ -122,7 +122,7 @@ selections that might be made via the marketplace UI.
 
 ```
 mpdev verify \
-    --deployer=gcr.io/neo4j-k8s-marketplace-public/causal-cluster/deployer:4.2 >VERIFY.log 2>&1
+    --deployer=gcr.io/neo4j-k8s-marketplace-public/causal-cluster/deployer:4.4 >VERIFY.log 2>&1
 ```
 
 I like to save the verify logs because the output is so huge.  If something goes wrong
@@ -167,7 +167,7 @@ These instructions mimic what the deployment container does.
 
 ```
 DEPLOY_ID=$(head -c 10 /dev/urandom | md5 | head -c 5)
-SOLUTION_VERSION=4.2
+SOLUTION_VERSION=4.4
 IMAGE=gcr.io/neo4j-k8s-marketplace-public/causal-cluster:$SOLUTION_VERSION
 APP_INSTANCE_NAME=deploy-$DEPLOY_ID
 CLUSTER_PASSWORD=mySecretPassword
