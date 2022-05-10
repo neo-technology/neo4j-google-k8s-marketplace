@@ -186,7 +186,7 @@ data:
     # Each core is individually up and configured.
     for id in $(seq 0 $((CORES - 1))); do
       core_host=$(core_hostname $id)
-      core_endpoint="bolt://$core_host:{{ .Values.ports.bolt }}"
+      core_endpoint="neo4j://$core_host:{{ .Values.ports.bolt }}"
 
       test="Core host $id of $CORES -- $core_endpoint is available"
       runtest "$test" "MATCH (n) RETURN COUNT(n);" "$core_endpoint"
@@ -197,7 +197,7 @@ data:
     done
 
     # Replicas are up and configured.
-    replica_endpoint="bolt://$replica_host:{{ .Values.ports.bolt }}"
+    replica_endpoint="neo4j://$replica_host:{{ .Values.ports.bolt }}"
     test="Replica host -- $replica_endpoint is available"
     runtest "$test" "MATCH (n) RETURN COUNT(n);" "$replica_endpoint"
 
@@ -214,7 +214,7 @@ data:
       core_host=$(core_hostname $id)
       # Use bolt driver, not routing driver, to ensure that test verifies data
       # exists on this host.
-      core_endpoint="bolt://$core_host:{{ .Values.ports.bolt }}"
+      core_endpoint="neo4j://$core_host:{{ .Values.ports.bolt }}"
       test="Core host $id has the canary write"
       result=$(cypher "MATCH (c:Canary) WITH count(c) as x where x = 1 RETURN x;" "$core_endpoint")
       exit_code=$?
