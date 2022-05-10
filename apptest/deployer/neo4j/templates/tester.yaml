@@ -159,7 +159,7 @@ data:
     # LEADERS
     leaders=$(echo $topology | grep -o LEADER | wc -l)
     test="Cluster has 1 leader"
-    if [ $leaders -eq 1 ] ; then
+    if [ $leaders -eq $((CORES-1)) ]  ; then
       succeed "$test"
     else
       fail "$test" "$leaders leaders"
