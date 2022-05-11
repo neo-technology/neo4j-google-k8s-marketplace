@@ -201,8 +201,8 @@ data:
     # test="Replica host -- $replica_endpoint is available"
     # runtest "$test" "MATCH (n) RETURN COUNT(n);" "$replica_endpoint"
 
-    test="Replica host -- $replica_endpoint has APOC installed correctly"
-    runtest "$test" "RETURN apoc.version();" "$replica_endpoint"
+    #test="Replica host -- $replica_endpoint has APOC installed correctly"
+    #runtest "$test" "RETURN apoc.version();" "$replica_endpoint"
 
     # Test for data replication.
     runtest "Sample canary write" 'CREATE (c:Canary) RETURN count(c);'
