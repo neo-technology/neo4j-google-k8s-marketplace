@@ -1,4 +1,4 @@
-FROM launcher.gcr.io/google/debian10
+FROM launcher.gcr.io/google/debian11
 RUN apt-get update
 RUN apt-get install -y bash curl wget gnupg apt-transport-https apt-utils lsb-release
 RUN wget -O - https://debian.neo4j.com/neotechnology.gpg.key | apt-key add -

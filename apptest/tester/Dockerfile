@@ -1,4 +1,4 @@
-FROM launcher.gcr.io/google/debian10
+FROM launcher.gcr.io/google/debian11
 RUN apt update && apt -y upgrade
 RUN apt install -y bash curl wget gnupg apt-transport-https curl apt-utils
 RUN wget https://dist.neo4j.org/cypher-shell/cypher-shell_4.4.10_all.deb
