@@ -1,4 +1,4 @@
-FROM launcher.gcr.io/google/debian9 AS build
+FROM launcher.gcr.io/google/debian10 AS build
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends gettext
