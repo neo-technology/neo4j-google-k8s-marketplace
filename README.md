@@ -57,7 +57,7 @@ Adjust parameters as needed / necessary, and take note of the tags for versionin
 running the deployer container, and telling it to deploy a cluster of 3 cores, 1 RR of the "solution containers".
 
 ```
-# This assumes APP_INSTANCE_NAME=testdeploy and SOLUTION_VERSION=4.4
+# This assumes ex and ex
 $ mpdev install \
       --deployer=gcr.io/neo4j-k8s-marketplace-public/causal-cluster/deployer:4.4 \
       --parameters='{"name": "testdeploy", "namespace": "default", "image":"gcr.io/neo4j-k8s-marketplace-public/causal-cluster:4.4","coreServers":"3","readReplicaServers":"1"}'
