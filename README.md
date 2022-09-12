@@ -15,6 +15,7 @@ You can run the following commands to make sure submodules are updated.
 ```shell
 git submodule sync --recursive
 git submodule update --recursive --init --force
+git submodule update --remote --merge
 ```
 
 ## Setting up the GKE environment
@@ -58,7 +59,7 @@ running the deployer container, and telling it to deploy a cluster of 3 cores, 1
 
 ```
 # This assumes ex and ex
-$ mpdev install \
+$ bin/mpdev install \
       --deployer=gcr.io/neo4j-k8s-marketplace-public/causal-cluster/deployer:4.4 \
       --parameters='{"name": "testdeploy", "namespace": "default", "image":"gcr.io/neo4j-k8s-marketplace-public/causal-cluster:4.4","coreServers":"3","readReplicaServers":"1"}'
 ```
