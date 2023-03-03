@@ -3,11 +3,11 @@
 # This script is intended to be used for internal testing only, to create the artifacts necessary for 
 # testing and deploying this code in a sample GKE cluster.
 PROJECT=neo4j-k8s-marketplace-public
-CLUSTER=lab
+CLUSTER=lab-new
 ZONE=us-east1-b
 NODES=4
 API=beta
-NEO4J_VERSION=4.4.16-enterprise
+NEO4J_VERSION=4.4.18-enterprise
 
 gcloud beta container clusters create $CLUSTER \
     --zone "$ZONE" \
