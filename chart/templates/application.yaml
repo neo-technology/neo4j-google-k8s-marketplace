@@ -82,7 +82,7 @@ spec:
     kind: PersistentVolumeClaim
   - group: apps/v1
     kind: StatefulSet
-  - group: policy/v1beta1
+  - group: policy/v1
     kind: PodDisruptionBudget
   - group: apps/v1
     kind: Secret
