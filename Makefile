@@ -6,7 +6,7 @@ TAG=$(SOLUTION_VERSION)
 APP_DEPLOYER_IMAGE=$(REGISTRY)/deployer:$(SOLUTION_VERSION)
 APP_RESTORE_IMAGE=$(REGISTRY)/restore:$(SOLUTION_VERSION)
 APP_BACKUP_IMAGE=$(REGISTRY)/restore:$(SOLUTION_VERSION)
-NEO4J_VERSION=4.4.18-enterprise
+NEO4J_VERSION=4.4.26-enterprise
 TESTER_IMAGE = $(REGISTRY)/tester:$(SOLUTION_VERSION)
 NAMESPACE ?= default
 
@@ -53,6 +53,7 @@ app/build:: .build/neo4j \
 	    --build-arg REGISTRY=$(REGISTRY) \
 		--build-arg TAG=$(SOLUTION_VERSION) \
 	    --build-arg MARKETPLACE_TOOLS_TAG="$(MARKETPLACE_TOOLS_TAG)" \
+	    --no-cache \
 	    --tag "$(APP_DEPLOYER_IMAGE)" \
 	    -f deployer/Dockerfile \
 	    .
@@ -65,6 +66,7 @@ app/build:: .build/neo4j \
 	$(call print_target,$@)
 	docker build \
 	   --tag "$(TESTER_IMAGE)" \
+	   --no-cache \
 	   --build-arg MARKETPLACE_TOOLS_TAG="$(MARKETPLACE_TOOLS_TAG)" \
 	   -f apptest/tester/Dockerfile \
 	   .
@@ -74,6 +76,7 @@ app/build:: .build/neo4j \
 .build/neo4j/restore: restore/*
 	docker build \
 		--tag "$(APP_RESTORE_IMAGE)" \
+		--no-cache \
 	    --build-arg MARKETPLACE_TOOLS_TAG="$(MARKETPLACE_TOOLS_TAG)" \
 		-f restore/Dockerfile \
 		.
@@ -85,6 +88,7 @@ APP_BACKUP_IMAGE=$(REGISTRY)/restore:$(SOLUTION_VERSION)
 .build/neo4j/backup: backup/*
 	docker build \
 		--tag "$(APP_BACKUP_IMAGE)" \
+		--no-cache \
   	    --build-arg MARKETPLACE_TOOLS_TAG="$(MARKETPLACE_TOOLS_TAG)" \
 		-f backup/Dockerfile \
 		.
@@ -94,6 +98,7 @@ APP_BACKUP_IMAGE=$(REGISTRY)/restore:$(SOLUTION_VERSION)
 .build/neo4j/causal-cluster:  causal-cluster/*
 	docker pull neo4j:$(NEO4J_VERSION)
 	docker build --tag $(REGISTRY):$(SOLUTION_VERSION) \
+	--no-cache \
 		--build-arg NEO4J_VERSION="$(NEO4J_VERSION)" \
   	    --build-arg MARKETPLACE_TOOLS_TAG="$(MARKETPLACE_TOOLS_TAG)" \
 		-f causal-cluster/Dockerfile \
