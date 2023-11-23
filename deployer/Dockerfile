@@ -37,8 +37,8 @@ COPY --from=build /tmp/test/neo4j.tar.gz /data-test/chart/
 COPY --from=build /tmp/test-schema.yaml /data-test/schema.yaml
 COPY --from=build /tmp/solution-schema.yaml /data/schema.yaml
 
-RUN echo "THIS IS MY TESTER SCHEMA OVERLAY"
-RUN cat /data-test/schema.yaml
+#RUN echo "THIS IS MY TESTER SCHEMA OVERLAY"
+#RUN cat /data-test/schema.yaml
 
-RUN echo "THIS IS MY SOLUTION SCHEMA"
-RUN cat /data/schema.yaml
+#RUN echo "THIS IS MY SOLUTION SCHEMA"
+#RUN cat /data/schema.yaml
