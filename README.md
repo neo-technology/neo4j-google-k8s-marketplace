@@ -59,31 +59,27 @@ running the deployer container, and telling it to deploy a cluster of 3 cores, 1
 
 ```
 # This assumes ex and ex
-$ bin/mpdev install \
+$ mpdev install \
       --deployer=gcr.io/neo4j-k8s-marketplace-public/causal-cluster/deployer:4.4 \
       --parameters='{"name": "testdeploy", "namespace": "default", "image":"gcr.io/neo4j-k8s-marketplace-public/causal-cluster:4.4","coreServers":"3","readReplicaServers":"1"}'
 ```
 
-## Running the Deployer Container (Old Method Relying on Google Marketplace Utils)
-
-I'm keeping these instructions here for now but we should probably be using mpdev above.
-
-Using the marketplace-k8s-app-tools script to launch the deployment container mimics how google's
-k8s marketplace does it with the UI.
-
-The make task `make app/install` accomplishes this, below is a variant with what that does:
+## Running Tests
 
 ```
-SOLUTION_VERSION=$(cat chart/Chart.yaml | grep version: | sed 's/.*: //g')
-DEPLOYER_IMAGE=gcr.io/neo4j-k8s-marketplace-public/causal-cluster/deployer:$SOLUTION_VERSION
-APP_INSTANCE_NAME="neo4j-a$(head -c 2 /dev/urandom | base64 - | sed 's/[^A-Za-z0-9]/x/g' | tr '[:upper:]' '[:lower:]')"
-vendor/marketplace-k8s-app-tools/scripts/start.sh \
-   --deployer=$DEPLOYER_IMAGE \
-   --parameters='{"name":"'$APP_INSTANCE_NAME'","namespace":"default","coreServers":"3", "cpuRequest":"100m", "memoryRequest": "1Gi", "volumeSize": "20Gi", 
-   "readReplicaServers":"1", "image": "gcr.io/neo4j-k8s-marketplace-public/causal-cluster:'$SOLUTION_VERSION'"}'
+mpdev verify \
+    --deployer=gcr.io/neo4j-k8s-marketplace-public/causal-cluster/deployer:4.4 >VERIFY.log 2>&1
 ```
 
-Once deployed, the instructions above on getting logs and running cypher-shell still apply.
+I like to save the verify logs because the output is so huge.  If something goes wrong
+it's easier to capture it and look back through the log.
+
+What this command does is to run the deployer container, which deploys the solution
+containers, waits for everything to come live (pods in ready status) and then runs
+the test resources following the "schema overlay" approach described above.
+
+The testing process is simple: if the test resources exit with code 0, you're good.
+If they exit with any other code, your tests failed.
 
 ## Deleting a Running Instance of Causal Cluster
 
@@ -117,40 +113,7 @@ works is that `mpdev` or the Makefile approach runs the deployer container in te
 mode.   That deployer container deploys the actual solution, and then runs the test
 artifacts.  The schema overlay dominates whatever properties were not defined in 
 the solution schema.yaml file.  In this way, the testing approach can mimic user 
-selections that might be made via the marketplace UI. 
-
-## Running Tests (New Method)
-
-```
-mpdev verify \
-    --deployer=gcr.io/neo4j-k8s-marketplace-public/causal-cluster/deployer:4.4 >VERIFY.log 2>&1
-```
-
-I like to save the verify logs because the output is so huge.  If something goes wrong
-it's easier to capture it and look back through the log.
-
-What this command does is to run the deployer container, which deploys the solution
-containers, waits for everything to come live (pods in ready status) and then runs
-the test resources following the "schema overlay" approach described above.
-
-The testing process is simple: if the test resources exit with code 0, you're good.
-If they exit with any other code, your tests failed.
-
-## Running Tests  (Old Method)
-
-- Build the test conainer `make app/build-test`
-- Run tests
-
-```
-make app/verify
-```
-
-That app/verify target, like many others, is provided for by Google's
-marketplace tools repo; consult app.Makefile in that repo for full details. 
-Behind the scenes, it invokes `driver.sh` to deploy, wait for successful deploy,
-and launch the testing container.
-
-Actual test contents are specified by the resources in `tester.yaml` in the apptest directory.
+selections that might be made via the marketplace UI.
 
 ## How to run Backups
 
