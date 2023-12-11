@@ -53,3 +53,6 @@ jobs:
         with:
           name: verify-log
           path: VERIFY.log
+
+      - name: Run Cleanup
+        run: bash cleanup-k8s.sh
