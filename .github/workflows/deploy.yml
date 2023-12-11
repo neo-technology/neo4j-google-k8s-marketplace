@@ -1,0 +1,55 @@
+name: Deploy and Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy_and_test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Update Git Submodules
+        run: |
+          git submodule sync --recursive
+          git submodule update --recursive --init --force
+          git submodule update --remote --merge
+
+      - name: Export CLUSTER_PREFIX as GitHub Env Variable
+        run: echo "CLUSTER_PREFIX=${CLUSTER_PREFIX}-$(date +"%Y%m%d%H%M%S")" >> $GITHUB_ENV
+
+      - name: Set up GKE Environment
+        run: |
+          bash setup-k8s.sh
+
+      - name: Set up Tooling
+        run: |
+          gcloud config set project neo4j-k8s-marketplace-public
+          docker pull gcr.io/cloud-marketplace-tools/k8s/dev
+          BIN_FILE="$HOME/bin/mpdev"
+          docker run \
+            gcr.io/cloud-marketplace-tools/k8s/dev \
+            cat /scripts/dev > "$BIN_FILE"
+          chmod +x "$BIN_FILE"
+          export REGISTRY=gcr.io/$(gcloud config get-value project | tr ':' '/')
+
+      - name: Build All Containers and Push to Staging Repo
+        run: make app/build
+
+      - name: Run Deployer Container to Test Deploy
+        run: |
+          mpdev install \
+            --deployer=gcr.io/neo4j-k8s-marketplace-public/causal-cluster/deployer:4.4 \
+            --parameters='{"name": "testdeploy", "namespace": "default", "image":"gcr.io/neo4j-k8s-marketplace-public/causal-cluster:4.4","coreServers":"3","readReplicaServers":"1"}'
+
+      - name: Run Tests
+        run: mpdev verify --deployer=gcr.io/neo4j-k8s-marketplace-public/causal-cluster/deployer:4.4 > VERIFY.log 2>&1
+
+      - name: Upload Verify Log
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: verify-log
+          path: VERIFY.log
