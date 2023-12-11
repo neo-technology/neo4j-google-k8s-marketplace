@@ -3,13 +3,13 @@
 # This script is intended to be used for internal testing only, to create the artifacts necessary for 
 # testing and deploying this code in a sample GKE cluster.
 PROJECT=neo4j-k8s-marketplace-public
-CLUSTER_PREFIX=lab
+CLUSTER_PREFIX=${CLUSTER_PREFIX:-lab}
 ZONE=us-east1-b
 NODES=4
 API=beta
 NEO4J_VERSION=4.4.26-enterprise
 
-CLUSTER=${CLUSTER_PREFIX}-$(date +"%Y%m%d%H%M%S")
+CLUSTER=${CLUSTER:-$CLUSTER_PREFIX}
 
 gcloud beta container clusters create $CLUSTER \
     --zone "$ZONE" \
