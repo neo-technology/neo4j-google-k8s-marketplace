@@ -3,7 +3,9 @@ build/
 nohup.out
 expanded.yaml
 chart/templates/tests
-
+.DS_Store
+.idea/
+vendor/
 # Temporary diffs off of marketplacetools to make things work pending Google PRs
 diff
 
