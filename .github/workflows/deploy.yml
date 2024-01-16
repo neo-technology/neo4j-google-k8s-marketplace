@@ -20,6 +20,23 @@ jobs:
       - name: Export CLUSTER_PREFIX as GitHub Env Variable
         run: echo "CLUSTER_PREFIX=${CLUSTER_PREFIX}-$(date +"%Y%m%d%H%M%S")" >> $GITHUB_ENV
 
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0.2.0
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+
+      - name: Authenticate with gcloud
+        run: |
+          gcloud auth login
+
+      - name: Configure gcloud settings
+        run: |
+          gcloud config set account ${{ secrets.GCP_ACCOUNT }}
+          gcloud config set project ${{ secrets.GCP_PROJECT_ID }}
+          gcloud config set compute/zone ${{ secrets.GCP_ZONE }}
+
       - name: Set up GKE Environment
         run: |
           bash setup-k8s.sh
