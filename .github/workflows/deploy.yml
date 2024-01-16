@@ -18,7 +18,7 @@ jobs:
           git submodule update --remote --merge
 
       - name: Export CLUSTER_PREFIX as GitHub Env Variable
-        run: echo "CLUSTER_PREFIX=${CLUSTER_PREFIX}-$(date +"%Y%m%d%H%M%S")" >> $GITHUB_ENV
+        run: echo "CLUSTER_PREFIX=lab-$(date +"%Y%m%d%H%M%S")" >> $GITHUB_ENV
 
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v0.2.0
