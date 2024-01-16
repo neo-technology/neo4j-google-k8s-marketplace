@@ -30,7 +30,7 @@ jobs:
       - name: Install gcloud components
         run: |
           gcloud components install beta --quiet
-          gcloud components install kubectl-gke --quiet
+          gcloud components install gke-gcloud-auth-plugin --quiet
 
       - name: Set up GKE Environment
         run: |
