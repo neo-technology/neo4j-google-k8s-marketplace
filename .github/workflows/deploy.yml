@@ -38,7 +38,7 @@ jobs:
 
       - name: Set up Tooling
         run: |
-          run: mkdir -p /home/runner/bin
+          mkdir -p /home/runner/bin
           gcloud config set project neo4j-k8s-marketplace-public
           docker pull gcr.io/cloud-marketplace-tools/k8s/dev
           BIN_FILE="$HOME/bin/mpdev"
