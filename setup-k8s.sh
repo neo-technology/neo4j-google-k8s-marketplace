@@ -27,7 +27,7 @@ gcloud container clusters get-credentials $CLUSTER \
 
 # Configure local auth of docker so that we can use regular
 # docker commands to push/pull from our GCR setup.
-gcloud auth configure-docker
+gcloud gcloud auth configure-docker us-docker.pkg.dev
 
 # Bootstrap RBAC cluster-admin for your user.
 # More info: https://cloud.google.com/kubernetes-engine/docs/how-to/role-based-access-control
