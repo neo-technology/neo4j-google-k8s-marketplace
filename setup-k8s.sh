@@ -7,7 +7,7 @@ CLUSTER_PREFIX=${CLUSTER_PREFIX:-lab}
 ZONE=us-east1-b
 NODES=4
 API=beta
-NEO4J_VERSION=4.4.34-enterprise
+NEO4J_VERSION=4.4.38-enterprise
 
 CLUSTER=${CLUSTER:-$CLUSTER_PREFIX}
 
@@ -27,7 +27,7 @@ gcloud container clusters get-credentials $CLUSTER \
 
 # Configure local auth of docker so that we can use regular
 # docker commands to push/pull from our GCR setup.
-gcloud gcloud auth configure-docker us-docker.pkg.dev
+gcloud auth configure-docker us-west1-docker.pkg.dev
 
 # Bootstrap RBAC cluster-admin for your user.
 # More info: https://cloud.google.com/kubernetes-engine/docs/how-to/role-based-access-control
