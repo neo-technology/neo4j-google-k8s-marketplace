@@ -19,7 +19,7 @@ gcloud beta container clusters create $CLUSTER \
     --max-nodes "10" \
     --release-channel="stable" \
     --enable-autoscaling \
-    --cluster-version "1.26"
+    --cluster-version "1.29"
     
 gcloud container clusters get-credentials $CLUSTER \
    --zone $ZONE \
