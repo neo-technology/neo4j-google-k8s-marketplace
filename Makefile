@@ -1,5 +1,5 @@
 NAME = neo4j
-REGISTRY = gcr.io.dev/neo4j-k8s-marketplace-public/causal-cluster
+REGISTRY = gcr.io/neo4j-k8s-marketplace-public/causal-cluster
 # Solution version
 SOLUTION_VERSION=$(shell cat chart/Chart.yaml | grep version: | sed 's/.*: //g')$(BUILD)
 TAG=$(SOLUTION_VERSION)
