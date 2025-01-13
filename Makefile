@@ -17,6 +17,10 @@ include ./var.Makefile
 
 $(info ---- TAG = $(TAG))
 
+define add_marketplace_annotation
+	crane mutate $(1) --annotation com.googleapis.cloudmarketplace.product.service.name=neo4j.endpoints.neo4j-k8s-marketplace-public.cloud.goog
+endef
+
 APP_NAME ?= testrun
 
 APP_PARAMETERS ?= { \
@@ -58,6 +62,7 @@ app/build:: .build/neo4j \
 	    -f deployer/Dockerfile \
 	    .
 	docker push "$(APP_DEPLOYER_IMAGE)"
+	$(call add_marketplace_annotation,$(APP_DEPLOYER_IMAGE))
 	@touch "$@"
 
 
@@ -71,6 +76,7 @@ app/build:: .build/neo4j \
 	   -f apptest/tester/Dockerfile \
 	   .
 	docker push "$(TESTER_IMAGE)"
+	$(call add_marketplace_annotation,$(TESTER_IMAGE))
 	@touch "$@"
 
 .build/neo4j/restore: restore/*
@@ -81,6 +87,7 @@ app/build:: .build/neo4j \
 		-f restore/Dockerfile \
 		.
 	docker push "$(APP_RESTORE_IMAGE)"
+	$(call add_marketplace_annotation,$(APP_RESTORE_IMAGE))
 	@date >> "$@"
 
 APP_BACKUP_IMAGE=$(REGISTRY)/restore:$(SOLUTION_VERSION)
@@ -93,6 +100,7 @@ APP_BACKUP_IMAGE=$(REGISTRY)/restore:$(SOLUTION_VERSION)
 		-f backup/Dockerfile \
 		.
 	docker push "$(APP_BACKUP_IMAGE)"
+	$(call add_marketplace_annotation,$(APP_BACKUP_IMAGE))
 	@date >> "$@"
 
 .build/neo4j/causal-cluster:  causal-cluster/*
@@ -104,4 +112,6 @@ APP_BACKUP_IMAGE=$(REGISTRY)/restore:$(SOLUTION_VERSION)
 		-f causal-cluster/Dockerfile \
 		.
 	docker push $(REGISTRY):$(SOLUTION_VERSION)
+	$(call add_marketplace_annotation,$(REGISTRY):$(SOLUTION_VERSION))
+	@date >> "$@"
 
