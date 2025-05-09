@@ -1,6 +1,7 @@
 FROM launcher.gcr.io/google/debian11
 RUN apt-get update
-RUN apt-get install -y bash curl wget gnupg apt-transport-https apt-utils lsb-release
+RUN apt-get install -y bash curl gnupg apt-transport-https apt-utils lsb-release
+RUN apt-get install -y wget && apt-get upgrade -y wget
 RUN wget -O - https://debian.neo4j.com/neotechnology.gpg.key | apt-key add -
 RUN curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
 RUN echo 'deb http://debian.neo4j.com stable 4.4' | tee -a /etc/apt/sources.list.d/neo4j.list
