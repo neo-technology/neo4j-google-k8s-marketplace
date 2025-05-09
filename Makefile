@@ -18,7 +18,7 @@ include ./var.Makefile
 $(info ---- TAG = $(TAG))
 
 define add_marketplace_annotation
-	crane mutate $(1) --annotation com.googleapis.cloudmarketplace.product.service.name=neo4j.endpoints.neo4j-k8s-marketplace-public.cloud.goog
+	crane mutate $(1) --annotation com.googleapis.cloudmarketplace.product.service.name=services/neo4j-enterprise-causal-cluster-k8s-neo4j-public.cloudpartnerservices.goog
 endef
 
 APP_NAME ?= testrun
